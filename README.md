@@ -17,9 +17,6 @@ ssc install moransi, replace
 ```
 
 ## Demo Files
-The Stata code and data are available on GitHub.  
-URL: https://keisukekondokk.github.io/moransi/
-
 See [`demo`](./demo) directory. There are three examples.
 
 ## Source Files
