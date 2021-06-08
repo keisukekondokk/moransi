@@ -1,0 +1,3 @@
+v 3
+d Keisuke Kondo, Research Institute of Economy, Trade and Industry
+p moransi Stata module to compute Moran's I
