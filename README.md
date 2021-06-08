@@ -1,6 +1,6 @@
 # MORANSI: Stata module to compute Moran's I
 
-The `moransi` command computes Moran's $I$ statistic to test for global spatial autocorrelation in Stata.
+The `moransi` command computes Moran's *I* statistic to test for global spatial autocorrelation in Stata.
 
 ## Install
 
@@ -47,5 +47,5 @@ Email: kondo-keisuke@rieti.go.jp
 URL: https://keisukekondokk.github.io/  
 
 ## Reference
-Kondo, Keisuke (2018) "MORANSI: Stata module to compute Moran's $I$," Statistical Software Components S458473, Boston College Department of Economics.  
+Kondo, Keisuke (2018) "MORANSI: Stata module to compute Moran's *I*," Statistical Software Components S458473, Boston College Department of Economics.  
 URL: https://ideas.repec.org/c/boc/bocode/s458473.html  
