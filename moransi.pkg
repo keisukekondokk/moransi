@@ -2,6 +2,7 @@ v 3
 d moransi.  Stata module to compute Moran's I
 d Keisuke Kondo, Research Institute of Economy, Trade and Industry
 d 
+d Support: webpage https://keisukekondokk.github.io/
 d Support: email kondo-keisuke@rieti.go.jp
 f ado/moransi.ado
 f ado/moransi.sthlp

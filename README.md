@@ -4,6 +4,12 @@ The `moransi` command computes Moran's $I$ statistic to test for global spatial 
 
 ## Install
 
+### GitHub
+
+```
+net install moransi, from("https://raw.githubusercontent.com/keisukekondokk/moransi/main/")
+```
+
 ### SSC
 
 ```
