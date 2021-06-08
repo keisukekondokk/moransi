@@ -20,7 +20,7 @@ ssc install moransi, replace
 See [`demo`](./demo) directory. There are three examples.
 
 ## Source Files
-Open the [`ado`](./ado) directory. There are `moransi.ado` and `moransi.sthlp` files. 
+Open [`ado`](./ado) directory. There are `moransi.ado` and `moransi.sthlp` files. 
 
 ## Terms of Use
 Users (hereinafter referred to as the User or Users depending on context) of the content on this web site (hereinafter referred to as the "Content") are required to conform to the terms of use described herein (hereinafter referred to as the Terms of Use). Furthermore, use of the Content constitutes agreement by the User with the Terms of Use. The contents of the Terms of Use are subject to change without prior notice.
