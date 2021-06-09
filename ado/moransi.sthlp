@@ -33,6 +33,7 @@
 {synopt:{opt app:rox}}use bilateral distance approximated by the simplified version of the Vincenty formula{p_end}
 {synopt:{opt det:ail}}display summary statistics of the bilateral distance{p_end}
 {synopt:{opt nomat:save}}does not save the bilateral distance matrix on the memory{p_end}
+{synopt:{opt gen:erate}}stores the spatial lag of {varname} in the dataset.{p_end}
 {synoptline}
 {p2colreset}{...}
 {pstd}* {cmd:lat()}, {cmd:lon()}, {cmd:swm()}, {cmd:dist()}, and {cmd:dunit()}
@@ -94,6 +95,9 @@ version of the Vincenty formula.
 {opt nomat:save} does not save the bilateral distance matrix {bf:r(D)} and spatial
 weight matrix {bf:r(W)} on the memory.
 
+{phang}
+{opt gen:erate} stores the spatial lag of {varname} in the dataset.
+
 
 {marker examples}{...}
 {title:Examples}
@@ -115,8 +119,12 @@ Case 4: Nonbinary spatial weight matrix by power function{p_end}
 {phang2}{cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(pow 1) dist(.) dunit(km)}{p_end}
 
 {pstd}
-Case 5: {cmd:approx} option{p_end}
+Case 5: {opt app:rox} option{p_end}
 {phang2}{cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(pow 1) dist(.) dunit(km) approx}{p_end}
+
+{pstd}
+Case 6: {opt gen:erate} option{p_end}
+{phang2}{cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(pow 1) dist(.) dunit(km) generate}{p_end}
 
 {pstd}
 Results can be displayed in a map using the {cmd:spshape2dta} and {cmd:grmap} commands for Stata 15

@@ -51,13 +51,6 @@ use "data/columbus.dta", clear
 ** Standardize Variable
 egen std_CRIME = std(CRIME)
 
-** Call Mata to Make Spatial Weight Matrix
-spgen std_CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dunit(km) dist(.)
-
-
-** Coefficient is equal to Moran's I
-reg splag1_std_CRIME_p std_CRIME
-
 **
 spatgsa std_CRIME, w(mW) moran
 
@@ -65,5 +58,8 @@ spatgsa std_CRIME, w(mW) moran
 splagvar std_CRIME, wname(mW) wfrom(Stata) moran(std_CRIME) replace
 
 **
-moransi CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dist(.) dunit(km)
+moransi std_CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dist(.) dunit(km) gen
+
+** Coefficient is equal to Moran's I
+reg splag_std_CRIME_p std_CRIME
 

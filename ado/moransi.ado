@@ -2,14 +2,16 @@
 ** (C) KEISUKE KONDO
 ** 
 ** Release Date: March 31, 2018
-** Latest Update: June 8, 2021
+** Latest Update: June 9, 2021
 ** 
-** Version: 1.20
+** Version: 1.21
 ** 
 ** [Contact]
 ** Email: kondo-keisuke@rieti.go.jp
 ** URL: https://keisukekondokk.github.io/
 *******************************************************************************/
+** Version: 1.21
+** Added generate option
 ** Version: 1.20
 ** Bug fix for p-value
 ** Added swm(knn #) option
@@ -33,10 +35,12 @@ program moransi, sortpreserve rclass
 			*/ DMS /*
 			*/ APProx /*
 			*/ DETail /*
-			*/ NOMATsave ]
+			*/ NOMATsave /*
+			*/ GENerate ]
 	
 	local vY `varlist'
 	local swmtype = substr("`swm'", 1, 3)
+	local swmtype_short = substr("`swm'", 1, 1)
 	local unit = "`dunit'"
 	marksample touse
 	markout `touse' `vY' `lon' `lat'
@@ -64,13 +68,6 @@ program moransi, sortpreserve rclass
 		}
 	}
 	qui: drop ______missing_count_spgen
-	
-	/*Store Number and Name of Variables*/
-	local _num_var = 0
-	foreach var in `mY' {
-		local _num_var = `_num_var' + 1
-		local _name_var`_num_var' = "`var'"
-	}
 	
 	/*Check Latitude Range*/
 	qui: sum `lat'
@@ -193,18 +190,39 @@ program moransi, sortpreserve rclass
 		local matsave = 0
 	}
 	
+	/*Check before Making Output Variable*/
+	local gensplag = 0
+	if( "`generate'" != "" ){
+		capture confirm new variable splag_`vY'_`swmtype_short', exact
+		if( _rc == 0 ) {
+			local gensplag = 1
+		}
+		else if( _rc != 0 ) {
+			display as error "Outcome variable for `vY' already exists."
+			exit _rc
+		}
+	}
+	
 	/*+++++CALL Mata Program+++++*/
-	mata: calcmoransi("`vY'", "`lon'", "`lat'", `fmdms', "`swmtype'", `dist', "`unit'", `dd', `appdist', `dispdetail', `matsave', "`touse'")
+	mata: calcmoransi("`vY'", "`lon'", "`lat'", `fmdms', "`swmtype'", `dist', "`unit'", `dd', `appdist', `dispdetail', `matsave', `gensplag', "`touse'")
 	/*+++++END Mata Program+++++*/
 	
 	/*Store Results in return*/
 	return add
 	
+	/*Generate Spatial Lag*/
+	if( "`generate'" != "" ){
+		/*Add Variable Label*/
+		label var splag_`vY'_`swmtype_short' "sptial lag, swm(`swm'), td=`dist', od=`order', row-standadized"
+
+		/*Display Results*/
+		display as txt "{bf:splag_`vY'_`swmtype_short'} was generated in the dataset."
+	}
 end
 
 version 11
 mata:
-void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdetail, matsave, touse)
+void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdetail, matsave, gensplag, touse)
 {
 	/*Make Variable*/
 	if( fmdms == "1" ){
@@ -329,6 +347,7 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 
 	/*Moran Scatterplot*/
 	vsy = ( vy :- mean(vy) ) :/ sqrt( variance(vy) )
+	vwy = mW * vy
 	vwsy = mW * vsy
 
 	/*Moran's I from Definition*/
@@ -408,6 +427,11 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 	printf("{txt}{hline 21}{c BT}{hline 63}\n")
 	printf("{txt}Null Hypothesis: Spatial Randomization\n")
 
+	/*Return Results in Mata to Stata*/
+	if( gensplag == 1 ){
+		st_store(., st_addvar("float", "splag"+"_"+vY+"_"+substr(swmtype, 1, 1)), st_local("touse"), vwy)
+	}
+	
 	/*rreturn command in Stata*/
 	st_rclear()
 	st_numscalar("r(dist_max)", dist_max)
