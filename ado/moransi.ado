@@ -637,8 +637,16 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 	dI = (vsy'vwsy) / (vsy'vsy)
 
 	/*Calculate Expectation and Variance of Moran's I*/
-	dS1 = 0.5 * colsum( rowsum( (mW :+ mW'):^2 ) )
-	dS2 = 1. * colsum( ( rowsum(mW :+ mW') ):^2 )
+	vS1 = J(cN, 1, 0)
+	vS2 = J(cN, 1, 0)
+	for( i = 1; i <= cN; ++i ){
+		vS1[i] = rowsum( (mW[i,] :+ mW[,i]'):^2 )
+		vS2[i] = ( rowsum(mW[i,] :+ mW[,i]'):^2 )
+	}
+	dS1 = 0.5 * colsum( vS1 )
+	dS2 = 1.0 * colsum( vS2 )
+	vS1 = .
+	vS2 = .
 	dD = cN * colsum( vsy:^4 ) / (colsum(vsy:^2))^2
 	dC = (cN-1)*(cN-2)*(cN-3)*dS0^2
 	dB = dD * ( (cN^2-cN)*dS1 - 2*cN*dS2 + 6*dS0^2 )
