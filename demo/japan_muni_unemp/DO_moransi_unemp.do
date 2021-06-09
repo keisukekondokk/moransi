@@ -36,46 +36,13 @@ clear
 svmat mW
 save "data/SWM_ur_dist2_std.dta", replace
 
-
-/************************
-** Moran Scatter Plot
-** 
-************************/
-** Load Dataset
-use "data/DTA_ur_1980_2005_all.dta", clear
-
-** Moran Scatter Plot
-** NOTE: Coefficient is equal to Moran's I
-egen std_ur2005 = std(ur2005)
-spgen std_ur2005, lon(lon) lat(lat) swm(pow 2) dunit(km) dist(.)
-rename splag1_std_ur2005_p w_std_ur2005
-
-**
-reg w_std_ur2005 std_ur2005, nocons
-
-** Moran Scatte Plot
-twoway (scatter w_std_ur2005 std_ur2005, ms(oh) yaxis(1 2) xaxis(1 2)) /*
-	*/ (lfit w_std_ur2005 std_ur2005, lw(medthick) estopts(nocons)), /*
-	*/ ytitle("W.Standardized Unemployment Rates", tstyle(size(large)) axis(1)) /*
-	*/ xtitle("Standardized Unemployment Rates", tstyle(size(large)) height(6) axis(1)) /*
-	*/ ytitle("", axis(2)) /*
-	*/ xtitle("", axis(2)) /*
-	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(1)) /*
-	*/ xlabel(-4(2)12, labsize(large) format(%2.0f) nogrid axis(1)) /*
-	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(2)) /*
-	*/ xlabel(-4(2)12, labsize(large) format(%2.0f) nogrid axis(2)) /*
-	*/ ysize(3) xsize(4) /*
-	*/ yline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
-	*/ xline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
-	*/ legend(off) /*
-	*/ graphregion(color(white) fcolor(white))
-graph export "fig/FIG_moran_ur2005.png", as(png) replace
-
-
 /************************
 ** Moran's I Statistic
 ** Comparison using 3 commands
 ************************/
+
+** Load Dataset
+use "data/DTA_ur_1980_2005_all.dta", clear
 
 ** Load Spatial Weight Matrix for SPATGSA and SPLAGVAR
 matrix drop _all
@@ -95,4 +62,34 @@ splagvar ur2005, wname(mW) wfrom(Stata) moran(ur2005)
 ** MORNASI Command by Kondo
 moransi ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det
 
+/************************
+** Moran Scatter Plot
+** 
+************************/
 
+** Moran Scatter Plot
+** NOTE: Coefficient is equal to Moran's I
+egen std_ur2005 = std(ur2005)
+spgen std_ur2005, lon(lon) lat(lat) swm(pow 2) dunit(km) dist(.)
+rename splag1_std_ur2005_p w_std_ur2005
+
+**
+reg w_std_ur2005 std_ur2005, nocons
+
+** Moran Scatte Plot
+twoway (scatter w_std_ur2005 std_ur2005, ms(oh) yaxis(1 2) xaxis(1 2)) /*
+	*/ (lfit w_std_ur2005 std_ur2005, lw(medthick) estopts(nocons)), /*
+	*/ ytitle("W.Standardized Unemployment Rates", tstyle(size(large)) axis(1)) /*
+	*/ xtitle("Standardized Unemployment Rates", tstyle(size(large)) height(6) axis(1)) /*
+	*/ ytitle("", axis(2)) /*
+	*/ xtitle("", axis(2)) /*
+	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(1)) /*
+	*/ xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(1)) /*
+	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(2)) /*
+	*/ xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(2)) /*
+	*/ ysize(3) xsize(4) /*
+	*/ yline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
+	*/ xline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
+	*/ legend(off) /*
+	*/ graphregion(color(white) fcolor(white))
+graph export "fig/FIG_moran_ur2005.png", as(png) replace
