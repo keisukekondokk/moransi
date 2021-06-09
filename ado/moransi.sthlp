@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.20  8 June 202}{...}
+{* *! version 1.21  9 June 202}{...}
 {cmd:help moransi}
 {hline}
 
