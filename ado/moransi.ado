@@ -12,6 +12,7 @@
 *******************************************************************************/
 ** Version: 1.21
 ** Added generate option
+** Coding improvement for saving memory space
 ** Version: 1.20
 ** Bug fix for p-value
 ** Added swm(knn #) option
@@ -242,117 +243,400 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 	/*Size of SWM*/
 	printf("{txt}Size of spatial weight matrix:{res} %1.0f * %1.0f\n", cN, cN)
 
+	/*Variables*/
+	if( matsave == 1 ){
+		mD = J(cN, cN, 0)
+	}
+	mD_L = .
+	cN_vD = .
+	dist_mean = .
+	dist_sd = .
+	dist_min = .
+	dist_max = 0
+	numErrorSwm = 0
+	numErrorSwmNoNeighbor = 0
+	
+	/*Spatial Lag*/
+	vDist = J(1, cN, 0)
+	vW = J(1, cN, 0)
+	mW = J(cN, cN, 0)
+	vsy = ( vy :- mean(vy) ) :/ sqrt( variance(vy) )
+	vwy = J(cN, 1, 0)
+	vwsy = J(cN, 1, 0)
+	
 	/*Make Distance Matrix using Vincenty (1975) */
 	if( appdist == 1 ){
 		/*Simplified Version of Vincenty Formula*/
-		calcdist2(cN, latr, lonr, unit, &mD)
-	} 
-	else {
-		/*Vincenty Formula*/
-		calcdist1(cN, latr, lonr, unit, &mD)
-	}
+		for( i = 1; i <= cN; ++i ){
+		
+			/* Display Iteration Process */
+			if( i == 1 ){
+				printf("{txt}{c TT}{hline 15}{c TT}\n")
+			}
 
-	/*Summary Statistics of Distance Matrix*/
-	mD_L = lowertriangle(mD)
-	vD = select(vech(mD_L), vech(mD_L):>0)
-	cN_vD = rows(vD)
-	dist_mean = mean(vD)
-	dist_sd = sqrt(variance(vD))
-	dist_min = min(vD)
-	dist_max = max(vD)
-	vD = .
-	if( matsave == 0 ){
-		mD_L = .
+			/*Distance between i and j*/
+			A = J(1, cN, 1) :* lonr[i]
+			B = J(1, cN, 1) :* lonr'
+			C = J(1, cN, 1) :* latr[i]
+			D = J(1, cN, 1) :* latr'
+			difflonr = abs( A - B )
+			numer1 = ( cos(D):*sin(difflonr) ):^2
+			numer2 = ( cos(C):*sin(D) :- sin(C):*cos(D):*cos(difflonr) ):^2
+			numer = sqrt( numer1 :+ numer2 )
+			denom = sin(C):*sin(D) :+ cos(C):*cos(D):*cos(difflonr)
+			vDist = 6378.137 * atan2( denom, numer )
+			/*Missing between i and i*/
+			vDist[i] = .
+			
+			/*Convert Unit of Distance*/
+			if( unit == "mi" ){
+				vDist = 0.621371 :* vDist
+			}
+			
+			/*Store Min and Max Distance*/
+			if( min(vDist) < dist_min ){
+				dist_min = min(vDist)
+			}
+			if( max(vDist) > dist_max ){
+				dist_max = max(vDist)
+			}
+			
+			/*Save Distance Matrix*/
+			if( matsave == 1 ){
+				mD[i,] = vDist
+			}
+			
+			/*Binary SWM*/
+			if( swmtype == "bin" ){
+				vW = ( vDist :< dist )
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW) == 0)
+				/*Diagonal Element*/
+				vW[i] = 0
+				vW = vW :/ rowsum(vW)
+			}
+			/*K-Nearest Neighbor SWM*/
+			if( swmtype == "knn" ){
+				/*Obtain Threshold Distance for KNN*/
+				vDistSorted = sort(vDist', 1)'
+				dDistKnn = vDistSorted[dd]
+				vW = ( vDist :<= dDistKnn )
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW :!= 0) > dd)
+				/*Diagonal Element*/
+				vW[i] = 0
+				vW = vW :/ rowsum(vW)
+			}
+			/*Exponential SWM*/
+			if( swmtype == "exp" ){
+				vW = ( vDist :< dist ) :* exp( - dd :* vDist )
+				vDist = .
+				vW[i] = 0 
+				vW = vW :/ rowsum(vW)
+			}
+			/*Power SWM*/
+			if( swmtype == "pow" ){
+				vW = ( vDist :< dist ) :* vDist :^(-dd)
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwmNoNeighbor = numErrorSwmNoNeighbor + (rowsum(vW) == 0)
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW :== .) > 1 | rowsum(vW) == 0)
+				/*Diagonal Element*/
+				vW[i] = 0
+				vW = vW :/ rowsum(vW)
+			}
+			
+			/*Spatial Lagged Variable*/
+			mW[i,] = vW
+			vwy[i,] = vW * vy
+			vwsy[i,] = vW * vsy
+			
+			/* Display Iteration Process */
+			if( i == trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  10%%{c |}\n")
+			}
+			else if( i == 2*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  20%%{c |}\n")
+			}
+			else if( i == 3*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  30%%{c |}\n")
+			}
+			else if( i == 4*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  40%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) ){
+				printf("{txt}{c |}Completed:  50%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  60%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 2*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  70%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 3*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  80%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 4*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  90%%{c |}\n")
+			}
+			else if( i == cN ){
+				printf("{txt}{c |}Completed: 100%%{c |}\n")
+				printf("{txt}{c BT}{hline 15}{c BT}\n")
+			}
+		}
+
+		/*REPORT ERROR CHECK*/
+		if( swmtype == "bin" ){
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has no neighbors. Confirm dist() option.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have no neighbors. Confirm dist() option.\n", numErrorSwm)
+				}
+			}
+		}
+		if( swmtype == "knn" ){
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has multiple k-nearest neighbors.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have multiple k-nearest neighbors.\n", numErrorSwm)
+				}
+			}
+		}
+		if( swmtype == "pow" ){
+			if(numErrorSwmNoNeighbor > 0){
+				if(numErrorSwmNoNeighbor == 1){
+					printf("{txt}Warning: %1.0f observation has no neighbors. Confirm dist() option.\n", numErrorSwmNoNeighbor)
+				}
+				if(numErrorSwmNoNeighbor > 1){
+					printf("{txt}Warning: %1.0f observations have no neighbors. Confirm dist() option.\n", numErrorSwmNoNeighbor)
+				}
+			}
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has missing value.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have missing values.\n", numErrorSwm)
+				}
+			}
+		}
+	}
+	else if( appdist == 0 ){
+		/*Vincenty Formula*/
+
+		/*Variables*/
+		a = 6378.137
+		b = 6356.752314245
+		f = (a-b)/a
+		eps = 1e-12
+		maxIt = 1e+5
+
+		/*LOOP for Vincenty Formula*/
+		for( i = 1; i <= cN; ++i ){
+		
+			/* Display Iteration Process */
+			if( i == 1 ){
+				printf("{txt}{c TT}{hline 15}{c TT}\n")
+			}
+			
+			Alon = J(1, cN, 1) :* lonr[i]
+			Blon = J(1, cN, 1) :* lonr'
+			Clat = J(1, cN, 1) :* latr[i]
+			Dlat = J(1, cN, 1) :* latr'
+			U1 = atan( (1-f) :* tan(Clat) )
+			U2 = atan( (1-f) :* tan(Dlat) )
+			L = abs( Alon :- Blon )
+			lam = L
+			l1_lam = lam
+			cnt = 0
+			do{
+				numer1 = ( cos(U2) :* sin(lam) ):^2
+				numer2 = ( cos(U1) :* sin(U2) :- sin(U1) :* cos(U2) :* cos(lam) ):^2
+				numer = sqrt( numer1 :+ numer2 )
+				denom = sin(U1) :* sin(U2) :+ cos(U1) :* cos(U2) :* cos(lam)
+				sig = atan2( denom, numer )
+				sinalp = (cos(U1) :* cos(U2) :* sin(lam)) :/ sin(sig)
+				cos2alp = 1 :- sinalp:^2
+				cos2sigm = cos(sig) :- ( 2 :* sin(U1) :* sin(U2) ) :/ cos2alp
+				C = f:/16 :* cos2alp :* ( 4 :+ f :* (4 :- 3 :* cos2alp) )
+				lam = L :+ (1:-C) :* f :* sinalp :* ( sig :+ C :* sin(sig) :* ( cos2sigm :+ C :* cos(sig) :*(-1 :+ 2 :* cos2sigm:^2) ) )
+				cri = abs( max(lam :- l1_lam) )
+				l1_lam = lam;
+				if( cnt++ > maxIt ){
+					printf("{err}Convergence not achieved in Vincenty formula \n")
+					printf("{err}Add approx option to avoid convergence error \n")
+					exit(error(430))
+				}
+			}while( cri > eps )
+
+			/*After Iteration*/
+			u2 = cos2alp :* ( (a^2 - b^2) / b^2 )
+			A = 1 :+ (u2 :/ 16384) :* ( 4096 :+ u2 :* (-768 :+ u2 :* (320 :- 175 :* u2)) )
+			B = u2 :/ 1024 :* (256 :+ u2 :* (-128 :+ u2 :* (74 :- 47 :*u2)) )
+			dsig = B:*sin(sig) :* ( cos2sigm :+ 0.25:*B:*( cos(sig):*(-1:+2:*cos2sigm:^2) :- 1:/6:*B:*cos2sigm:*(-3:+4:*sin(sig):^2):*(-3:+4:*cos2sigm) ) )
+			vDist = b :* A :* (sig :- dsig)
+			
+			/*Distance = 0*/
+			if(missing(vDist) > 1){
+				_editmissing(vDist, 0)
+			}
+			
+			/*Missing between i and i*/
+			vDist[i] = .
+			
+			/*Convert Unit of Distance*/
+			if( unit == "mi" ){
+				vDist = 0.621371 :* vDist
+			}
+			
+			/*Store Min and Max Distance*/
+			if( min(vDist) < dist_min ){
+				dist_min = min(vDist)
+			}
+			if( max(vDist) > dist_max ){
+				dist_max = max(vDist)
+			}
+			
+			/*Save Distance Matrix*/
+			if( matsave == 1 ){
+				mD[i,] = vDist
+			}
+			
+			/*Binary SWM*/
+			if( swmtype == "bin" ){
+				vW = ( vDist :< dist )
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW) == 0)
+				/*Diagonal Element*/
+				vW[i] = 0 
+				vW = vW :/ rowsum(vW)
+			}
+			/*K-Nearest Neighbor SWM*/
+			if( swmtype == "knn" ){
+				/*Obtain Threshold Distance for KNN*/
+				vDistSorted = sort(vDist', 1)'
+				dDistKnn = vDistSorted[dd]
+				vW = ( vDist :<= dDistKnn )
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW :!= 0) > dd)
+				/*Diagonal Element*/
+				vW[i] = 0 
+				vW = vW :/ rowsum(vW)
+			}
+			/*Exponential SWM*/
+			if( swmtype == "exp" ){
+				vW = ( vDist :< dist ) :* exp( - dd :* vDist )
+				vDist = .
+				vW[i] = 0 
+				vW = vW :/ rowsum(vW)
+			}
+			/*Power SWM*/
+			if( swmtype == "pow" ){
+				vW = ( vDist :< dist ) :* vDist :^(-dd)
+				vDist = .
+				/*ERROR CHECK*/
+				numErrorSwmNoNeighbor = numErrorSwmNoNeighbor + (rowsum(vW) == 0)
+				/*ERROR CHECK*/
+				numErrorSwm = numErrorSwm + (rowsum(vW :== .) > 1 | rowsum(vW) == 0)
+				/*Diagonal Element*/
+				vW[i] = 0 
+				vW = vW :/ rowsum(vW)
+			}
+			
+			/*Spatial Lagged Variable*/
+			mW[i,] = vW
+			vwy[i,] = vW * vy
+			vwsy[i,] = vW * vsy
+			
+			/* Display Iteration Process */
+			if( i == trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  10%%{c |}\n")
+			}
+			else if( i == 2*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  20%%{c |}\n")
+			}
+			else if( i == 3*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  30%%{c |}\n")
+			}
+			else if( i == 4*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  40%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) ){
+				printf("{txt}{c |}Completed:  50%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  60%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 2*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  70%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 3*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  80%%{c |}\n")
+			}
+			else if( i == trunc(cN/2) + 4*trunc(cN/10) ){
+				printf("{txt}{c |}Completed:  90%%{c |}\n")
+			}
+			else if( i == cN ){
+				printf("{txt}{c |}Completed: 100%%{c |}\n")
+				printf("{txt}{c BT}{hline 15}{c BT}\n")
+			}
+		}
+
+		/*REPORT ERROR CHECK*/
+		if( swmtype == "bin" ){
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has no neighbors. Confirm dist() option.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have no neighbors. Confirm dist() option.\n", numErrorSwm)
+				}
+			}
+		}
+		if( swmtype == "knn" ){
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has multiple k-nearest neighbors.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have multiple k-nearest neighbors.\n", numErrorSwm)
+				}
+			}
+		}
+		if( swmtype == "pow" ){
+			if(numErrorSwmNoNeighbor > 0){
+				if(numErrorSwmNoNeighbor == 1){
+					printf("{txt}Warning: %1.0f observation has no neighbors. Confirm dist() option.\n", numErrorSwmNoNeighbor)
+				}
+				if(numErrorSwmNoNeighbor > 1){
+					printf("{txt}Warning: %1.0f observations have no neighbors. Confirm dist() option.\n", numErrorSwmNoNeighbor)
+				}
+			}
+			if(numErrorSwm > 0){
+				if(numErrorSwm == 1){
+					printf("{txt}Warning: %1.0f observation has missing value.\n", numErrorSwm)
+				}
+				if(numErrorSwm > 1){
+					printf("{txt}Warning: %1.0f observations have missing values.\n", numErrorSwm)
+				}
+			}
+		}
 	}
 	
-	/*Spatial Weight Matrix*/
-	/*Binary SWM*/
-	if( swmtype == "bin" ){
-		mW = ( mD :< dist )
-		/*ERROR CHECK*/
-		numErrorSwm = colsum(rowsum(mW) :== 0)
-		/*Diagonal Element 0*/
-		_diag(mW, 0)
-		mW = mW :/ rowsum(mW)
-		/*ERROR CHECK*/
-		if(numErrorSwm > 0){
-			if(numErrorSwm == 1){
-				printf("{txt}Warning: %1.0f observation has no neighbors. Confirm dist() option.\n", numErrorSwm)
-			}
-			if(numErrorSwm > 1){
-				printf("{txt}Warning: %1.0f observations have no neighbors. Confirm dist() option.\n", numErrorSwm)
-			}
-		}
-	} 
-	/*K-Nearest Neighbor SWM*/
-	else if( swmtype == "knn" ){
-		/*Obtain Threshold Distance for KNN*/
-		vDSorted = J(cN, 1, 0)
-		for (i = 1; i <= cN; ++i) {
-			vDSorted = sort(mD[i, .]', 1)
-			vDknn[i] = vDSorted[dd]
-		}
-		mDSorted = .
-		mW = ( mD :<= vDknn )
-		vDSorted = .
-		/*ERROR CHECK*/
-		numErrorSwm = colsum(rowsum(mW :!= 0) :> dd)
-		/*Diagonal Element 0*/
-		_diag(mW, 0)
-		mW = mW :/ rowsum(mW)
-		/*ERROR CHECK*/
-		if(numErrorSwm > 0){
-			if(numErrorSwm == 1){
-				printf("{txt}Warning: %1.0f observation has multiple k-nearest neighbors.\n", numErrorSwm)
-			}
-			if(numErrorSwm > 1){
-				printf("{txt}Warning: %1.0f observations have multiple k-nearest neighbors.\n", numErrorSwm)
-			}
-		}		
-	} 
-	/*Exponential SWM*/
-	else if( swmtype == "exp" ){
-		mW = ( mD :< dist ) :* exp( - dd :* mD ) 
-		_diag(mW, 0)
-		mW = mW :/ rowsum(mW)
-	} 
-	/*Power SWM*/
-	else if( swmtype == "pow" ){
-		mW = ( mD :< dist ) :* mD :^(-dd)
-		/*ERROR CHECK*/
-		numErrorSwmNoNeighbor = colsum(rowsum(mW) :== 0)
-		numErrorSwmMissing = colsum(rowsum(mW :== .) :> 1 :| rowsum(mW) :== 0)
-		/*Diagonal Element 0*/
-		_diag(mW, 0)
-		mW = mW :/ rowsum(mW)
-		/*ERROR CHECK*/
-		if(numErrorSwmNoNeighbor > 0){
-			if(numErrorSwmNoNeighbor == 1){
-				printf("{txt}Warning: %1.0f observation has no neighbor. Confirm dist() option.\n", numErrorSwmNoNeighbor)
-			}
-			if(numErrorSwmNoNeighbor > 1){
-				printf("{txt}Warning: %1.0f observations have no neighbor. Confirm dist() option.\n", numErrorSwmNoNeighbor)
-			}
-		}
-		/*ERROR CHECK*/
-		if(numErrorSwmMissing > 0){
-			if(numErrorSwmMissing == 1){
-				printf("{txt}Warning: %1.0f observation has missing value.\n", numErrorSwmMissing)
-			}
-			if(numErrorSwmMissing > 1){
-				printf("{txt}Warning: %1.0f observations have missing values.\n", numErrorSwmMissing)
-			}
-		}
-	}
-
-	/*Moran Scatterplot*/
-	vsy = ( vy :- mean(vy) ) :/ sqrt( variance(vy) )
-	vwy = mW * vy
-	vwsy = mW * vsy
+	printf("ERRR")
 
 	/*Moran's I from Definition*/
-	dS0 = colsum( rowsum(mW) )
-	dI = (cN/dS0) * (vsy'vwsy) / (vsy'vsy)
+	dS0 = cN
+	dI = (vsy'vwsy) / (vsy'vsy)
 
 	/*Calculate Expectation and Variance of Moran's I*/
 	dS1 = 0.5 * colsum( rowsum( (mW :+ mW'):^2 ) )
@@ -380,6 +664,24 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 		dPI = 2 * ( 1 - normal(abs(dZI)) )
 	}
 
+	/*Summary Statistics of Distance Matrix*/
+	if( matsave == 1 ){
+		mD_L = lowertriangle(mD)
+		mD = .
+		vD = select(vech(mD_L), vech(mD_L):>0)
+		cN_vD = rows(vD)
+		dist_mean = mean(vD)
+		dist_sd = sqrt(variance(vD))
+		vD = .
+	}
+	else {
+		mW = .
+		mD_L = .
+		cN_vD = .
+		dist_mean = .
+		dist_sd = .
+	}
+	
 	/*Display Summary Statistics of Distances*/
 	printf("\n")
 	if( appdist == 1 ){
@@ -483,193 +785,5 @@ void convlonlat2decimal(lat, lon, touse, vlat, vlon)
 	st_view(vlon_, ., lon, touse)
 	(*vlat) = floor(vlat_) :+ (floor((vlat_:-floor(vlat_)):*100):/60) :+ (floor((vlat_:*100:-floor(vlat_:*100)):*100):/3600)
 	(*vlon) = floor(vlon_) :+ (floor((vlon_:-floor(vlon_)):*100):/60) :+ (floor((vlon_:*100:-floor(vlon_:*100)):*100):/3600)
-}
-end
-
-/*## MATA ## Vincenty Formula*/
-version 11
-mata:
-void calcdist1(cN, latr, lonr, unit, mD)
-{
-	/*Variables*/
-	mDist = J(cN, cN, 0)
-	a = 6378.137
-	b = 6356.752314245
-	f = (a-b)/a
-	eps = 1e-12
-	maxIt = 1e+5
-	
-	/*Distance between i and j*/
-	for( i = 1; i <= cN; ++i ){
-	
-		/* Display Iteration Process */
-		if( i == 1 ){
-			printf("{txt}Calculating bilateral distance...\n")
-			printf("{txt}{c TT}{hline 15}{c TT}\n")
-		}
-		
-		Alon = J(1, cN, 1) :* lonr[i]
-		Blon = J(1, cN, 1) :* lonr'
-		Clat = J(1, cN, 1) :* latr[i]
-		Dlat = J(1, cN, 1) :* latr'
-		
-		U1 = atan( (1-f) :* tan(Clat) )
-		U2 = atan( (1-f) :* tan(Dlat) )
-		L = abs( Alon :- Blon )
-		lam = L
-		l1_lam = lam
-		
-		cnt = 0
-		do{
-			numer1 = ( cos(U2) :* sin(lam) ):^2
-			numer2 = ( cos(U1) :* sin(U2) :- sin(U1) :* cos(U2) :* cos(lam) ):^2
-			numer = sqrt( numer1 :+ numer2 )
-			denom = sin(U1) :* sin(U2) :+ cos(U1) :* cos(U2) :* cos(lam)
-			sig = atan2( denom, numer )
-			sinalp = (cos(U1) :* cos(U2) :* sin(lam)) :/ sin(sig)
-			cos2alp = 1 :- sinalp:^2
-			cos2sigm = cos(sig) :- ( 2 :* sin(U1) :* sin(U2) ) :/ cos2alp
-			C = f:/16 :* cos2alp :* ( 4 :+ f :* (4 :- 3 :* cos2alp) )
-			lam = L :+ (1:-C) :* f :* sinalp :* ( sig :+ C :* sin(sig) :* ( cos2sigm :+ C :* cos(sig) :*(-1 :+ 2 :* cos2sigm:^2) ) )
-			cri = abs( max(lam :- l1_lam) )
-			l1_lam = lam;
-			if( cnt++ > maxIt ){
-				printf("{err}Convergence not achieved in Vincenty formula \n")
-				printf("{err}Add approx option to avoid convergence error \n")
-				exit(error(430))
-			}
-		}while( cri > eps )
-
-		/*After Iteration*/
-		u2 = cos2alp :* ( (a^2 - b^2) / b^2 )
-		A = 1 :+ (u2 :/ 16384) :* ( 4096 :+ u2 :* (-768 :+ u2 :* (320 :- 175 :* u2)) )
-		B = u2 :/ 1024 :* (256 :+ u2 :* (-128 :+ u2 :* (74 :- 47 :*u2)) )
-		dsig = B:*sin(sig) :* ( cos2sigm :+ 0.25:*B:*( cos(sig):*(-1:+2:*cos2sigm:^2) :- 1:/6:*B:*cos2sigm:*(-3:+4:*sin(sig):^2):*(-3:+4:*cos2sigm) ) )
-		vDist = b :* A :* (sig :- dsig)
-		/*Distance = 0*/
-		if(missing(vDist) > 1){
-			_editmissing(vDist, 0)
-		}
-		/*Convert distance between i and i to missing value*/
-		vDist[i] = .
-		/*Store Distance*/
-		mDist[i,] = vDist
-		
-		/* Display Iteration Process */
-		if( i == trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  10%%{c |}\n")
-		}
-		else if( i == 2*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  20%%{c |}\n")
-		}
-		else if( i == 3*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  30%%{c |}\n")
-		}
-		else if( i == 4*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  40%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) ){
-			printf("{txt}{c |}Completed:  50%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  60%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 2*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  70%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 3*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  80%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 4*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  90%%{c |}\n")
-		}
-		else if( i == cN ){
-			printf("{txt}{c |}Completed: 100%%{c |}\n")
-			printf("{txt}{c BT}{hline 15}{c BT}\n")
-		}
-	}
-
-	/*Convert Unit of Distance*/
-	if( unit == "mi" ){
-		mDist = 0.621371 :* mDist
-	}
-
-	/*Return Distance Matrix*/
-	(*mD) = mDist
-}
-end
-
-/*## MATA ## Simplified Version of Vincenty Formula*/
-version 11
-mata:
-void calcdist2(cN, latr, lonr, unit, mD)
-{
-	/*Variables*/
-	vDist = J(1, cN, 0)
-	mDist = J(cN, cN, 0)
-
-	/*Distance between i and j*/
-	for( i = 1; i <= cN; ++i ){
-		/* Display Iteration Process */
-		if( i == 1 ){
-			printf("{txt}Calculating bilateral distance...\n")
-			printf("{txt}{c TT}{hline 15}{c TT}\n")
-		}
-				
-		/*Bilateral Distance*/
-		A = J(1, cN, 1) :* lonr[i]
-		B = J(1, cN, 1) :* lonr'
-		C = J(1, cN, 1) :* latr[i]
-		D = J(1, cN, 1) :* latr'
-		difflonr = abs( A - B )
-		numer1 = ( cos(D):*sin(difflonr) ):^2
-		numer2 = ( cos(C):*sin(D) :- sin(C):*cos(D):*cos(difflonr) ):^2
-		numer = sqrt( numer1 :+ numer2 )
-		denom = sin(C):*sin(D) :+ cos(C):*cos(D):*cos(difflonr)
-		vDist = 6378.137 * atan2( denom, numer )
-		vDist[i] = .
-		mDist[i,] = vDist
-		
-		/* Display Iteration Process */
-		if( i == trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  10%%{c |}\n")
-		}
-		else if( i == 2*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  20%%{c |}\n")
-		}
-		else if( i == 3*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  30%%{c |}\n")
-		}
-		else if( i == 4*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  40%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) ){
-			printf("{txt}{c |}Completed:  50%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  60%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 2*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  70%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 3*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  80%%{c |}\n")
-		}
-		else if( i == trunc(cN/2) + 4*trunc(cN/10) ){
-			printf("{txt}{c |}Completed:  90%%{c |}\n")
-		}
-		else if( i == cN ){
-			printf("{txt}{c |}Completed: 100%%{c |}\n")
-			printf("{txt}{c BT}{hline 15}{c BT}\n")
-		}
-	}
-
-	/*Convert Unit of Distance*/
-	if( unit == "mi" ){
-		mDist = 0.621371 :* mDist
-	}
-
-	/*Return Distance Matrix*/
-	(*mD) = mDist
 }
 end
