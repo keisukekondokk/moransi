@@ -631,8 +631,6 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 			}
 		}
 	}
-	
-	printf("ERRR")
 
 	/*Moran's I from Definition*/
 	dS0 = cN
@@ -721,7 +719,7 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, appdist, dispdeta
 
 	/*Results of Moran's I*/
 	printf("\n")
-	printf("{txt}Moran's I Statistic {space 32} Number of Obs = {res}%8.0f\n",cN)
+	printf("{txt}Moran's I Statistic {space 40} Number of Obs = {res}%8.0f\n",cN)
 	printf("{txt}{hline 21}{c TT}{hline 63}\n")
 	printf("{txt}{space 12}Variable {c |}  Moran's I{space 9}E(I){space 8}SE(I){space 9}Z(I){space 6}p-value\n")
 	printf("{hline 21}{c +}{hline 63}\n")
