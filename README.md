@@ -7,7 +7,7 @@ The `moransi` command computes Moran's *I* statistic to test for global spatial 
 ### GitHub
 
 ```
-net install moransi, from("https://raw.githubusercontent.com/keisukekondokk/moransi/main/")
+net install moransi, replace from("https://raw.githubusercontent.com/keisukekondokk/moransi/main/")
 ```
 
 ### SSC
