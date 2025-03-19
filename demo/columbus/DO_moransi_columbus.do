@@ -19,25 +19,6 @@
 import excel "data/columbus.xlsx", sheet("columbus") firstrow clear
 save "data/columbus.dta", replace
 
-** Load Dataset
-use "data/columbus.dta", clear
-
-** Call Mata to Make Spatial Weight Matrix
-spgen CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dunit(km) dist(.)
-return list
-matrix mDist = r(D)
-matrix mW = r(W)
-
-** Save Spatial Weight Matrix
-clear 
-svmat mW
-save "data/columbus_swm_dist8_std.dta", replace
-
-** Load Spatial Weigh Matrix
-matrix drop _all
-clear
-spatwmat using "data/columbus_swm_dist8_std.dta", name(mW)
-
 
 /*************************************************
 ** Estimation
@@ -51,15 +32,37 @@ use "data/columbus.dta", clear
 ** Standardize Variable
 egen std_CRIME = std(CRIME)
 
-**
+** Moran's I
+moransi std_CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dist(.) dunit(km) graph
+
+** Save Spatial Weight Matrix
+return list
+matrix mDist = r(D)
+matrix mW = r(W)
+clear 
+svmat mW
+save "data/columbus_swm_dist8_std.dta", replace
+
+/*************************************************
+** Comparison with Other Commands
+** 
+** 
+*************************************************/
+
+** Load Spatial Weigh Matrix
+matrix drop _all
+clear
+spatwmat using "data/columbus_swm_dist8_std.dta", name(mW)
+
+** Load Dataset
+use "data/columbus.dta", clear
+
+** Standardize Variable
+egen std_CRIME = std(CRIME)
+
+** spatgsa
 spatgsa std_CRIME, w(mW) moran
 
-**
+** splagvar
 splagvar std_CRIME, wname(mW) wfrom(Stata) moran(std_CRIME) replace
-
-**
-moransi std_CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dist(.) dunit(km) gen
-
-** Coefficient is equal to Moran's I
-reg splag_std_CRIME_p std_CRIME
 

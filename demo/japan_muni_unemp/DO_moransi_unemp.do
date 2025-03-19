@@ -1,13 +1,12 @@
 /**********************************************************
 ** (C) Keisuke Kondo
 ** Upload Date: March 31, 2018
-** Updated Date: June 8, 2021
+** Updated Date: March 18, 2025
 ** 
 ** [Required Stata Modules]
 ** - spatgsa
 ** - splagvar
 ** - moransi
-** - spgen
 ** NOTE: Install from SSC Archive
 ** 
 ** [Reference]
@@ -17,17 +16,25 @@
 **
 **********************************************************/
 
+
 /************************
-** Spatial Weight Matrix
-** from Distance Matrix
+** Moran's I Statistic
+** Spatial Weight Matrix from Distance Matrix
 ************************/
 
 ** Load Dataset
 use "data/DTA_ur_1980_2005_all.dta", clear
 
+** 
+egen std_ur2005 = std(ur2005)
+
+** MORNASI Command by Kondo
+moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+graph export "fig/FIG_moran_ur2005.svg", replace
+rename splag_std_ur2005_p w_std_ur2005
+
 ** Call Mata to Make Spatial Weight Matrix
 ** NOTE: Take Distance Matrix from SPGEN Command
-spgen ur2005, lon(lon) lat(lat) swm(pow 2) dunit(km) dist(.)
 return list
 matrix mW = r(W)
 
@@ -44,52 +51,96 @@ save "data/SWM_ur_dist2_std.dta", replace
 ** Load Dataset
 use "data/DTA_ur_1980_2005_all.dta", clear
 
+** 
+egen std_ur2005 = std(ur2005)
+
 ** Load Spatial Weight Matrix for SPATGSA and SPLAGVAR
 matrix drop _all
-clear
 set matsize 2000
 spatwmat using "data/SWM_ur_dist2_std.dta", name(mW)
 
-** Load Dataset
-use "data/DTA_ur_1980_2005_all.dta", clear
-
 ** SPATGSA Command by Pisati
-spatgsa ur2005, w(mW) moran
+spatgsa std_ur2005, w(mW) moran
 
 ** SPLAGVAR Command by Jenty
-splagvar ur2005, wname(mW) wfrom(Stata) moran(ur2005)
+splagvar std_ur2005, wname(mW) wfrom(Stata) moran(std_ur2005)
 
-** MORNASI Command by Kondo
-moransi ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det
+
 
 /************************
-** Moran Scatter Plot
+** Local Moran's I Statistics on Map
 ** 
 ************************/
 
-** Moran Scatter Plot
-** NOTE: Coefficient is equal to Moran's I
-egen std_ur2005 = std(ur2005)
-spgen std_ur2005, lon(lon) lat(lat) swm(pow 2) dunit(km) dist(.)
-rename splag1_std_ur2005_p w_std_ur2005
+** Shapfile of Municipality in Municipality
+spshape2dta "shp/SHP_poly_muni_seirei_pc2011.shp", replace
 
-**
-reg w_std_ur2005 std_ur2005, nocons
+** Shapfile of Prefecture in Japan
+spshape2dta "shp/SHP_poly_pref_pc2011.shp", replace
 
-** Moran Scatte Plot
-twoway (scatter w_std_ur2005 std_ur2005, ms(oh) yaxis(1 2) xaxis(1 2)) /*
-	*/ (lfit w_std_ur2005 std_ur2005, lw(medthick) estopts(nocons)), /*
-	*/ ytitle("W.Standardized Unemployment Rates", tstyle(size(large)) axis(1)) /*
-	*/ xtitle("Standardized Unemployment Rates", tstyle(size(large)) height(6) axis(1)) /*
-	*/ ytitle("", axis(2)) /*
-	*/ xtitle("", axis(2)) /*
-	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(1)) /*
-	*/ xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(1)) /*
-	*/ ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(2)) /*
-	*/ xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(2)) /*
-	*/ ysize(3) xsize(4) /*
-	*/ yline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
-	*/ xline(0, lwidth(thin) lcolor(gray) lpattern(dash)) /*
-	*/ legend(off) /*
-	*/ graphregion(color(white) fcolor(white))
-graph export "fig/FIG_moran_ur2005.png", as(png) replace
+** Use shapefiles
+use "SHP_poly_muni_seirei_pc2011", clear
+
+** Merge Local Moran's I
+gen id_muni_new = cityCode
+merge 1:1 id_muni_new using "data/DTA_ur_1980_2005_all_export.dta", keepusing(name* ur* std_* w_* lmoran_*)
+gen d_nodata = (_merge == 1 )
+drop _merge
+
+** 
+format %3.1f ur2005
+
+** 
+spset 
+
+** ==============================
+**　MAP: Unemployment Rates 2005
+** ==============================
+grmap ur2005, ///
+	clmethod(quantile) ///
+	clnum(9) ///
+	fcolor(Reds) ///
+	ocolor(none ...) ///
+	ndocolor(none ...) ///
+	legtitle("Unemployment Rates") ///
+	legend(size(medium) position(11)) ///
+	legstyle(1) ///
+	legcount /// 
+	polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+graph export "fig/FIG_map_ur2005.svg", replace
+graph export "fig/FIG_map_ur2005.png", as(png) width(1600) replace
+
+
+** ==============================
+**　MAP: Statistical Significance of Local Moran's I
+** ==============================
+grmap lmoran_p_std_ur2005_p, ///
+	clmethod(custom) ///
+	clbreak(0 0.01 0.05 0.1 1) ///
+	fcolor("green" "green%70" "green%30" none) ///
+	ocolor(none ...) ///
+	ndocolor(none ...) ///
+	legend(size(medium) position(11) order(2 "< 1 %" 3 "< 5 %" 4 "< 10 %" 5 "Not Significant")) ///
+	legstyle(1) ///
+	legcount /// 
+	polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+graph export "fig/FIG_map_ur2005_lmoransi_significance.svg", replace
+graph export "fig/FIG_map_ur2005_lmoransi_significance.png", as(png) width(1600) replace
+
+
+** ==============================
+**　MAP: Category of Local Moran's I
+** ==============================
+grmap lmoran_cat_std_ur2005_p if lmoran_p_std_ur2005_p < 0.10 , ///
+	clmethod(custom) ///
+	clbreak(0 1 2 3 4) ///
+	fcolor("red" "red%40" "blue%40" "blue") ///
+	ocolor(none ...) ///
+	ndocolor(none ...) ///
+	legend(size(medium) position(11) order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" 6 "Not Significant" )) ///
+	legstyle(1) ///
+	legcount /// 
+	polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+graph export "fig/FIG_map_ur2005_lmoransi_cluster.svg", replace
+graph export "fig/FIG_map_ur2005_lmoransi_cluster.png", as(png) width(1600) replace
+
