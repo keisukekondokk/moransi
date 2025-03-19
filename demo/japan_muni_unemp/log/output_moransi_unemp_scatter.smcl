@@ -1,0 +1,18 @@
+{com}. twoway (scatter splag_std_ur2005_p std_ur2005, ms(oh) yaxis(1 2) xaxis(1 2)) ///
+>         (lfit splag_std_ur2005_p std_ur2005, lw(medthick) estopts(nocons)), ///
+>         ytitle("W.Standardized Unemployment Rates", tstyle(size(large)) axis(1)) ///
+>         xtitle("Standardized Unemployment Rates", tstyle(size(large)) height(6) axis(1)) ///
+>         ytitle("", axis(2)) ///
+>         xtitle("", axis(2)) ///
+>         ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(1)) ///
+>         xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(1)) ///
+>         ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(2)) ///
+>         xlabel(-4(2)8, labsize(large) format(%2.0f) nogrid axis(2)) ///
+>         ysize(3) xsize(4) ///
+>         yline(0, lwidth(thin) lcolor(gray) lpattern(dash)) ///
+>         xline(0, lwidth(thin) lcolor(gray) lpattern(dash)) ///
+>         legend(off) ///
+>         graphregion(color(white) fcolor(white))
+{res}{txt}
+{com}. graph export "FIG_moran_ur2005.svg", replace
+{txt}(file FIG_moran_ur2005.svg written in SVG format)

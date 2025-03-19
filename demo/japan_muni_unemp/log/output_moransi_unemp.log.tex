@@ -1,0 +1,57 @@
+. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+{\smallskip}
+Size of spatial weight matrix: 1745 * 1745
+Calculating bilateral distance...
+{\TOPT}\HLI{15}{\TOPT}
+{\VBAR}Completed:  10\%{\VBAR}
+{\VBAR}Completed:  20\%{\VBAR}
+{\VBAR}Completed:  30\%{\VBAR}
+{\VBAR}Completed:  40\%{\VBAR}
+{\VBAR}Completed:  50\%{\VBAR}
+{\VBAR}Completed:  60\%{\VBAR}
+{\VBAR}Completed:  70\%{\VBAR}
+{\VBAR}Completed:  80\%{\VBAR}
+{\VBAR}Completed:  90\%{\VBAR}
+{\VBAR}Completed: 100\%{\VBAR}
+{\BOTT}\HLI{15}{\BOTT}
+{\smallskip}
+Distance by Vincenty formula (unit: km)
+\HLI{21}{\TOPT}\HLI{63} 
+                     {\VBAR}        Obs.        Mean         S.D.         Min.         Max.
+\HLI{21}{\PLUS}\HLI{63} 
+            Distance {\VBAR}     1523385     603.951      432.634        0.854     2961.185
+\HLI{21}{\BOTT}\HLI{63} 
+Distance threshold (unit: km):     .
+\HLI{85}
+{\smallskip}
+{\smallskip}
+Summary of Global Moran's I Statistic                      Number of Obs. =      1745
+\HLI{21}{\TOPT}\HLI{63}
+            Variable {\VBAR}  Moran's I         E(I)        SE(I)         Z(I)      p-value
+\HLI{21}{\PLUS}\HLI{63}
+          std_ur2005 {\VBAR}    0.49629     -0.00057      0.01019     48.73934      0.00000
+\HLI{21}{\BOTT}\HLI{63}
+Null Hypothesis: Spatial Randomization
+{\smallskip}
+{\smallskip}
+Summary of Local Moran's I Statistics                      Number of Obs. =      1745
+\HLI{21}{\TOPT}\HLI{63}
+          std_ur2005 {\VBAR}           Obs.        p < 0.10        p < 0.05        p < 0.01
+\HLI{21}{\PLUS}\HLI{63}
+        1: High-High {\VBAR}            526             205             188             156
+        2: High-Low  {\VBAR}            256               5               3               3
+        3: Low-High  {\VBAR}            157              20              14               9
+        4: Low-Low   {\VBAR}            806             245             206             130
+\HLI{21}{\BOTT}\HLI{63}
+Null Hypothesis: Spatial Randomization
+{\smallskip}
+{\bftt{splag_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_i_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_e_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_v_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_z_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_p_std_ur2005_p}} was generated in the dataset.
+{\bftt{lmoran_cat_std_ur2005_p}} was generated in the dataset.
+{\smallskip}
+. graph export "fig/FIG_moran_ur2005.svg", replace
+(file fig/FIG_moran_ur2005.svg written in SVG format)

@@ -1,0 +1,57 @@
+{com}. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+{res}{txt}
+{txt}Size of spatial weight matrix:{res} 1745 * 1745
+{txt}Calculating bilateral distance...
+{txt}{c TT}{hline 15}{c TT}
+{txt}{c |}Completed:  10%{c |}
+{txt}{c |}Completed:  20%{c |}
+{txt}{c |}Completed:  30%{c |}
+{txt}{c |}Completed:  40%{c |}
+{txt}{c |}Completed:  50%{c |}
+{txt}{c |}Completed:  60%{c |}
+{txt}{c |}Completed:  70%{c |}
+{txt}{c |}Completed:  80%{c |}
+{txt}{c |}Completed:  90%{c |}
+{txt}{c |}Completed: 100%{c |}
+{txt}{c BT}{hline 15}{c BT}
+
+{txt}Distance by Vincenty formula (unit: km)
+{txt}{hline 21}{c TT}{hline 63} 
+{txt}{space 20} {c |}{space 8}Obs.{space 8}Mean{space 9}S.D.{space 9}Min.{space 9}Max.
+{txt}{hline 21}{c +}{hline 63} 
+{txt}{space 12}Distance {c |}{res}     1523385     603.951      432.634        0.854     2961.185
+{txt}{hline 21}{c BT}{hline 63} 
+{txt}Distance threshold (unit: km):{res}     .
+{txt}{hline 85}
+
+
+{txt}Summary of Global Moran's I Statistic {space 20} Number of Obs. = {res}     1745
+{txt}{hline 21}{c TT}{hline 63}
+{txt}{space 12}Variable {c |}  Moran's I{space 9}E(I){space 8}SE(I){space 9}Z(I){space 6}p-value
+{hline 21}{c +}{hline 63}
+{txt}          std_ur2005 {c |} {res}   0.49629     -0.00057      0.01019     48.73934      0.00000
+{txt}{hline 21}{c BT}{hline 63}
+{txt}Null Hypothesis: Spatial Randomization
+
+
+{txt}Summary of Local Moran's I Statistics {space 20} Number of Obs. = {res}     1745
+{txt}{hline 21}{c TT}{hline 63}
+{txt}          std_ur2005 {c |}{space 11}Obs.{space 8}p < 0.10{space 8}p < 0.05{space 8}p < 0.01
+{hline 21}{c +}{hline 63}
+{txt}{space 7} 1: High-High {c |} {res}           526             205             188             156
+{txt}{space 7} 2: High-Low  {c |} {res}           256               5               3               3
+{txt}{space 7} 3: Low-High  {c |} {res}           157              20              14               9
+{txt}{space 7} 4: Low-Low   {c |} {res}           806             245             206             130
+{txt}{hline 21}{c BT}{hline 63}
+{txt}Null Hypothesis: Spatial Randomization
+
+{bf:splag_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_i_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_e_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_v_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_z_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_p_std_ur2005_p} was generated in the dataset.
+{bf:lmoran_cat_std_ur2005_p} was generated in the dataset.
+{res}{txt}
+{com}. graph export "fig/FIG_moran_ur2005.svg", replace
+{txt}(file fig/FIG_moran_ur2005.svg written in SVG format)

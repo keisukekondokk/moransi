@@ -1,0 +1,57 @@
+. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+
+Size of spatial weight matrix: 1745 * 1745
+Calculating bilateral distance...
+-----------------
+|Completed:  10%|
+|Completed:  20%|
+|Completed:  30%|
+|Completed:  40%|
+|Completed:  50%|
+|Completed:  60%|
+|Completed:  70%|
+|Completed:  80%|
+|Completed:  90%|
+|Completed: 100%|
+-----------------
+
+Distance by Vincenty formula (unit: km)
+------------------------------------------------------------------------------------- 
+                     |        Obs.        Mean         S.D.         Min.         Max.
+---------------------+--------------------------------------------------------------- 
+            Distance |     1523385     603.951      432.634        0.854     2961.185
+------------------------------------------------------------------------------------- 
+Distance threshold (unit: km):     .
+-------------------------------------------------------------------------------------
+
+
+Summary of Global Moran's I Statistic                      Number of Obs. =      1745
+-------------------------------------------------------------------------------------
+            Variable |  Moran's I         E(I)        SE(I)         Z(I)      p-value
+---------------------+---------------------------------------------------------------
+          std_ur2005 |    0.49629     -0.00057      0.01019     48.73934      0.00000
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+
+Summary of Local Moran's I Statistics                      Number of Obs. =      1745
+-------------------------------------------------------------------------------------
+          std_ur2005 |           Obs.        p < 0.10        p < 0.05        p < 0.01
+---------------------+---------------------------------------------------------------
+        1: High-High |            526             205             188             156
+        2: High-Low  |            256               5               3               3
+        3: Low-High  |            157              20              14               9
+        4: Low-Low   |            806             245             206             130
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+splag_std_ur2005_p was generated in the dataset.
+lmoran_i_std_ur2005_p was generated in the dataset.
+lmoran_e_std_ur2005_p was generated in the dataset.
+lmoran_v_std_ur2005_p was generated in the dataset.
+lmoran_z_std_ur2005_p was generated in the dataset.
+lmoran_p_std_ur2005_p was generated in the dataset.
+lmoran_cat_std_ur2005_p was generated in the dataset.
+
+. graph export "fig/FIG_moran_ur2005.svg", replace
+(file fig/FIG_moran_ur2005.svg written in SVG format)
