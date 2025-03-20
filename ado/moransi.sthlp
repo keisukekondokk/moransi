@@ -137,6 +137,10 @@ weight matrix {bf:r(W)} on the memory.
 {title:Examples}
 
 {pstd}
+Consider the Columbus dataset provided by GeoDa (2025).
+{p_end}
+
+{pstd}
 Case 1: Binary spatial weight matrix: neighbors within 50 km{p_end}
 {phang2}
 {cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(bin) dist(50) dunit(km)}
@@ -163,7 +167,7 @@ Case 4: Nonbinary spatial weight matrix by power function{p_end}
 {pstd}
 Case 5: {opt wvar(varname)} option to consider an additional weight variable between regions in the spatial weight matrix{p_end}
 {phang2}
-{cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(pow 1) dist(.) dunit(km) wvar(POP)}
+{cmd:. moransi CRIME, lat(y_cntrd) lon(x_cntrd) swm(pow 1) dist(.) dunit(km) wvar(INC)}
 {p_end}
 
 {pstd}
@@ -238,6 +242,11 @@ or later (for the earlier version, {cmd:shp2dta} and {cmd:spmap} commands).
 {title:References}
 
 See also related Stata commands:
+
+{phang}
+GeoDa (2025). "Columbus Crime 1980," {it:GeoDa: An Introduction to Spatial Data Science},
+ {browse "https://geodacenter.github.io/data-and-lab/columbus/":https://geodacenter.github.io/data-and-lab/columbus/} (Accessed March 20, 2025)
+{p_end}
 
 {phang}
 Kondo, K. (2016). "Hot and cold spot analysis using Stata," {it:Stata Journal}, volume 16, number 3: {browse "http://www.stata-journal.com/article.html?article=st0446":st0446}
