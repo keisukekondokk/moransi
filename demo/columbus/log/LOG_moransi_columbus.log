@@ -1,0 +1,215 @@
+---------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
+  log type:  text
+ opened on:  20 Mar 2025, 15:19:35
+
+. 
+. 
+. /*************************************************
+> ** Dataset
+> ** 
+> ** 
+> *************************************************/
+. 
+. ** Load Dataset
+. import excel "data/columbus.xlsx", sheet("columbus") firstrow clear
+
+. save "data/columbus.dta", replace
+file data/columbus.dta saved
+
+. 
+. 
+. /*************************************************
+> ** Estimation
+> ** 
+> ** 
+> *************************************************/
+. 
+. ** Load Dataset
+. use "data/columbus.dta", clear
+
+. 
+. ** Standardize Variable
+. egen std_CRIME = std(CRIME)
+
+. 
+. ** Moran's I
+. moransi std_CRIME, lon(x_cntrd) lat(y_cntrd) swm(pow 8) dist(.) dunit(km) graph
+
+Size of spatial weight matrix: 49 * 49
+Calculating bilateral distance...
+-----------------
+|Completed:  10%|
+|Completed:  20%|
+|Completed:  30%|
+|Completed:  40%|
+|Completed:  50%|
+|Completed:  60%|
+|Completed:  70%|
+|Completed:  80%|
+|Completed:  90%|
+|Completed: 100%|
+-----------------
+
+Distance by Vincenty formula (unit: km)
+
+Summary of Global Moran's I Statistic                      Number of Obs. =        49
+-------------------------------------------------------------------------------------
+            Variable |  Moran's I         E(I)        SE(I)         Z(I)      p-value
+---------------------+---------------------------------------------------------------
+           std_CRIME |    0.60778     -0.02083      0.14795      4.24873      0.00002
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+
+Summary of Local Moran's I Statistics                      Number of Obs. =        49
+-------------------------------------------------------------------------------------
+           std_CRIME |           Obs.        p < 0.10        p < 0.05        p < 0.01
+---------------------+---------------------------------------------------------------
+        1: High-High |             20               8               7               3
+        2: High-Low  |              4               0               0               0
+        3: Low-High  |              3               1               1               0
+        4: Low-Low   |             22               1               0               0
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+splag_std_CRIME_p was generated in the dataset.
+lmoran_i_std_CRIME_p was generated in the dataset.
+lmoran_e_std_CRIME_p was generated in the dataset.
+lmoran_v_std_CRIME_p was generated in the dataset.
+lmoran_z_std_CRIME_p was generated in the dataset.
+lmoran_p_std_CRIME_p was generated in the dataset.
+lmoran_cat_std_CRIME_p was generated in the dataset.
+
+. 
+. ** Save Spatial Weight Matrix
+. return list
+
+scalars:
+                  r(I) =  .6077775591941038
+                 r(EI) =  -.0208333333333333
+                r(seI) =  .1479527939116509
+                 r(zI) =  4.248726069362424
+                 r(pI) =  .0000214989617087
+                  r(N) =  49
+                 r(td) =  .
+                 r(dd) =  8
+          r(dist_mean) =  6.18384104754105
+            r(dist_sd) =  3.384225774686633
+           r(dist_min) =  .4654915536378494
+           r(dist_max) =  17.44432544793986
+
+macros:
+                r(cmd) : "moransi"
+            r(varname) : "std_CRIME"
+          r(dist_type) : "exact"
+              r(dunit) : "km"
+                r(swm) : "power"
+             r(weight) : "."
+
+matrices:
+                  r(D) :  49 x 49
+                  r(W) :  49 x 49
+
+. matrix mDist = r(D)
+
+. matrix mW = r(W)
+
+. clear 
+
+. svmat mW
+number of observations will be reset to 49
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 49
+
+. save "data/columbus_swm_dist8_std.dta", replace
+file data/columbus_swm_dist8_std.dta saved
+
+. 
+. /*************************************************
+> ** Comparison with Other Commands
+> ** 
+> ** 
+> *************************************************/
+. 
+. ** Load Spatial Weigh Matrix
+. matrix drop _all
+
+. clear
+
+. spatwmat using "data/columbus_swm_dist8_std.dta", name(mW)
+
+
+The following matrix has been created:
+
+1. Imported non-binary weights matrix mW 
+   Dimension: 49x49
+
+
+
+. 
+. ** Load Dataset
+. use "data/columbus.dta", clear
+
+. 
+. ** Standardize Variable
+. egen std_CRIME = std(CRIME)
+
+. 
+. ** spatgsa
+. spatgsa std_CRIME, w(mW) moran
+
+
+Measures of global spatial autocorrelation
+
+
+Weights matrix
+--------------------------------------------------------------
+Name: mW
+Type: Imported (non-binary)
+Row-standardized: No
+--------------------------------------------------------------
+
+Moran's I
+--------------------------------------------------------------
+          Variables |    I      E(I)   sd(I)     z    p-value*
+--------------------+-----------------------------------------
+          std_CRIME |  0.608  -0.021   0.148   4.249   0.000
+--------------------------------------------------------------
+*1-tail test
+
+
+
+. 
+. ** splagvar
+. splagvar std_CRIME, wname(mW) wfrom(Stata) moran(std_CRIME) replace
+(permute std_CRIME : splagvar_randper)
+
+Moran's I Statistics Under Normal Approximation and Randomization Assumptions
+
+-----------------------------------------------------------
+Statistics       |  Normal Approximation     Randomization
+-----------------+-----------------------------------------
+       Moran's I |     0.6078                  0.6078
+       Mean      |    -0.0208                 -0.0208
+       Std dev   |     0.1469                  0.1480
+       Z-score   |     4.2798                  4.2487
+       P-value*  |     0.0000                  0.0000
+-----------------------------------------------------------
+*: Two-tailed test
+
+Note: Under the random permutation procedure:
+ Mean = -0.0175 and Standard deviation =  0.1466
+
+Spatially lagged variable(s) calculated successfully and/or all requests processed.
+
+. 
+. 
+. ** LOG END
+. log close
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
+  log type:  text
+ closed on:  20 Mar 2025, 15:19:35
+---------------------------------------------------------------------------------------------------------------------

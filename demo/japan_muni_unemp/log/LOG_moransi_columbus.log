@@ -1,0 +1,351 @@
+---------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_columb
+> us.log
+  log type:  text
+ opened on:  20 Mar 2025, 15:24:44
+
+. 
+. 
+. /************************
+> ** Moran's I Statistic
+> ** Spatial Weight Matrix from Distance Matrix
+> ************************/
+. 
+. ** Load Dataset
+. use "data/DTA_ur_1980_2005_all.dta", clear
+
+. 
+. ** 
+. egen std_ur2005 = std(ur2005)
+
+. 
+. ** MORNASI Command by Kondo
+. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+
+Size of spatial weight matrix: 1745 * 1745
+Calculating bilateral distance...
+-----------------
+|Completed:  10%|
+|Completed:  20%|
+|Completed:  30%|
+|Completed:  40%|
+|Completed:  50%|
+|Completed:  60%|
+|Completed:  70%|
+|Completed:  80%|
+|Completed:  90%|
+|Completed: 100%|
+-----------------
+
+Distance by Vincenty formula (unit: km)
+------------------------------------------------------------------------------------- 
+                     |        Obs.        Mean         S.D.         Min.         Max.
+---------------------+--------------------------------------------------------------- 
+            Distance |     1523385     603.951      432.634        0.854     2961.185
+------------------------------------------------------------------------------------- 
+Distance threshold (unit: km):     .
+-------------------------------------------------------------------------------------
+
+
+Summary of Global Moran's I Statistic                      Number of Obs. =      1745
+-------------------------------------------------------------------------------------
+            Variable |  Moran's I         E(I)        SE(I)         Z(I)      p-value
+---------------------+---------------------------------------------------------------
+          std_ur2005 |    0.49629     -0.00057      0.01019     48.73934      0.00000
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+
+Summary of Local Moran's I Statistics                      Number of Obs. =      1745
+-------------------------------------------------------------------------------------
+          std_ur2005 |           Obs.        p < 0.10        p < 0.05        p < 0.01
+---------------------+---------------------------------------------------------------
+        1: High-High |            526             205             188             156
+        2: High-Low  |            256               5               3               3
+        3: Low-High  |            157              20              14               9
+        4: Low-Low   |            806             245             206             130
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+splag_std_ur2005_p was generated in the dataset.
+lmoran_i_std_ur2005_p was generated in the dataset.
+lmoran_e_std_ur2005_p was generated in the dataset.
+lmoran_v_std_ur2005_p was generated in the dataset.
+lmoran_z_std_ur2005_p was generated in the dataset.
+lmoran_p_std_ur2005_p was generated in the dataset.
+lmoran_cat_std_ur2005_p was generated in the dataset.
+
+. graph export "fig/FIG_moran_ur2005.svg", replace
+(file fig/FIG_moran_ur2005.svg written in SVG format)
+
+. rename splag_std_ur2005_p w_std_ur2005
+
+. 
+. ** Call Mata to Make Spatial Weight Matrix
+. ** NOTE: Take Distance Matrix from SPGEN Command
+. return list
+
+scalars:
+                  r(I) =  .4962911692480385
+                 r(EI) =  -.0005733944954128
+                r(seI) =  .0101943221591084
+                 r(zI) =  48.73934293900186
+                 r(pI) =  0
+                  r(N) =  1745
+                 r(td) =  .
+                 r(dd) =  2
+          r(dist_mean) =  603.95085630048
+            r(dist_sd) =  432.633986711015
+           r(dist_min) =  .8536509718661491
+           r(dist_max) =  2961.184699140176
+
+macros:
+                r(cmd) : "moransi"
+            r(varname) : "std_ur2005"
+          r(dist_type) : "exact"
+              r(dunit) : "km"
+                r(swm) : "power"
+             r(weight) : "."
+
+matrices:
+                  r(D) :  1745 x 1745
+                  r(W) :  1745 x 1745
+
+. matrix mW = r(W)
+
+. 
+. ** Save Spatial Weight Matrix (Row-Standardized)
+. clear 
+
+. svmat mW
+number of observations will be reset to 1745
+Press any key to continue, or Break to abort
+number of observations (_N) was 0, now 1,745
+
+. save "data/SWM_ur_dist2_std.dta", replace
+file data/SWM_ur_dist2_std.dta saved
+
+. 
+. /************************
+> ** Moran's I Statistic
+> ** Comparison using 3 commands
+> ************************/
+. 
+. ** Load Dataset
+. use "data/DTA_ur_1980_2005_all.dta", clear
+
+. 
+. ** 
+. egen std_ur2005 = std(ur2005)
+
+. 
+. ** Load Spatial Weight Matrix for SPATGSA and SPLAGVAR
+. matrix drop _all
+
+. set matsize 2000
+
+. spatwmat using "data/SWM_ur_dist2_std.dta", name(mW)
+
+
+The following matrix has been created:
+
+1. Imported non-binary weights matrix mW 
+   Dimension: 1745x1745
+
+
+
+. 
+. ** SPATGSA Command by Pisati
+. spatgsa std_ur2005, w(mW) moran
+
+
+Measures of global spatial autocorrelation
+
+
+Weights matrix
+--------------------------------------------------------------
+Name: mW
+Type: Imported (non-binary)
+Row-standardized: No
+--------------------------------------------------------------
+
+Moran's I
+--------------------------------------------------------------
+          Variables |    I      E(I)   sd(I)     z    p-value*
+--------------------+-----------------------------------------
+         std_ur2005 |  0.496  -0.001   0.010  48.739   0.000
+--------------------------------------------------------------
+*1-tail test
+
+
+
+. 
+. ** SPLAGVAR Command by Jenty
+. splagvar std_ur2005, wname(mW) wfrom(Stata) moran(std_ur2005)
+(permute std_ur2005 : splagvar_randper)
+
+Moran's I Statistics Under Normal Approximation and Randomization Assumptions
+
+-----------------------------------------------------------
+Statistics       |  Normal Approximation     Randomization
+-----------------+-----------------------------------------
+       Moran's I |     0.4963                  0.4963
+       Mean      |    -0.0006                 -0.0006
+       Std dev   |     0.0102                  0.0102
+       Z-score   |    48.6646                 48.7393
+       P-value*  |     0.0000                  0.0000
+-----------------------------------------------------------
+*: Two-tailed test
+
+Note: Under the random permutation procedure:
+ Mean = -0.0003 and Standard deviation =  0.0101
+
+Spatially lagged variable(s) calculated successfully and/or all requests processed.
+
+. 
+. 
+. 
+. /************************
+> ** Local Moran's I Statistics on Map
+> ** 
+> ************************/
+. 
+. ** Shapfile of Municipality in Municipality
+. spshape2dta "shp/SHP_poly_muni_seirei_pc2011.shp", replace
+  (importing .shp file)
+  (importing .dbf file)
+  (creating _ID spatial-unit id)
+  (creating _CX coordinate)
+  (creating _CY coordinate)
+
+  file SHP_poly_muni_seirei_pc2011_shp.dta created
+  file SHP_poly_muni_seirei_pc2011.dta     created
+
+. 
+. ** Shapfile of Prefecture in Japan
+. spshape2dta "shp/SHP_poly_pref_pc2011.shp", replace
+  (importing .shp file)
+  (importing .dbf file)
+  (creating _ID spatial-unit id)
+  (creating _CX coordinate)
+  (creating _CY coordinate)
+
+  file SHP_poly_pref_pc2011_shp.dta created
+  file SHP_poly_pref_pc2011.dta     created
+
+. 
+. ** Use shapefiles
+. use "SHP_poly_muni_seirei_pc2011", clear
+
+. 
+. ** Merge Local Moran's I
+. gen id_muni_new = cityCode
+
+. merge 1:1 id_muni_new using "data/DTA_ur_1980_2005_all_export.dta", keepusing(name* ur* std_* w_* lmoran_*)
+(note: variable id_muni_new was float, now double to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             4
+        from master                         4  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             1,745  (_merge==3)
+    -----------------------------------------
+
+. gen d_nodata = (_merge == 1 )
+
+. drop _merge
+
+. 
+. ** 
+. format %3.1f ur2005
+
+. 
+. ** 
+. spset 
+  Sp dataset SHP_poly_muni_seirei_pc2011.dta
+                data:  cross sectional
+     spatial-unit id:  _ID
+         coordinates:  _CX, _CY (planar)
+    linked shapefile:  SHP_poly_muni_seirei_pc2011_shp.dta
+
+. 
+. ** ==============================
+. **　MAP: Unemployment Rates 2005
+. ** ==============================
+. grmap ur2005, ///
+>         clmethod(quantile) ///
+>         clnum(9) ///
+>         fcolor(Reds) ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legtitle("Unemployment Rates") ///
+>         legend(size(medium) position(11)) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+
+. graph export "fig/FIG_map_ur2005.svg", replace
+(file fig/FIG_map_ur2005.svg written in SVG format)
+
+. graph export "fig/FIG_map_ur2005.png", as(png) width(1600) replace
+(file fig/FIG_map_ur2005.png written in PNG format)
+
+. 
+. 
+. ** ==============================
+. **　MAP: Statistical Significance of Local Moran's I
+. ** ==============================
+. grmap lmoran_p_std_ur2005_p, ///
+>         clmethod(custom) ///
+>         clbreak(0 0.01 0.05 0.1 1) ///
+>         fcolor("green" "green%70" "green%30" none) ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legend(size(medium) position(11) order(2 "< 1 %" 3 "< 5 %" 4 "< 10 %" 5 "Not Significant")) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+
+. graph export "fig/FIG_map_ur2005_lmoransi_significance.svg", replace
+(file fig/FIG_map_ur2005_lmoransi_significance.svg written in SVG format)
+
+. graph export "fig/FIG_map_ur2005_lmoransi_significance.png", as(png) width(1600) replace
+(file fig/FIG_map_ur2005_lmoransi_significance.png written in PNG format)
+
+. 
+. 
+. ** ==============================
+. **　MAP: Category of Local Moran's I
+. ** ==============================
+. grmap lmoran_cat_std_ur2005_p if lmoran_p_std_ur2005_p < 0.10 , ///
+>         clmethod(custom) ///
+>         clbreak(0 1 2 3 4) ///
+>         fcolor("red" "red%40" "blue%40" "blue") ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legend(size(medium) position(11) order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" 6 "Not Significa
+> nt" )) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
+
+. graph export "fig/FIG_map_ur2005_lmoransi_cluster.svg", replace
+(file fig/FIG_map_ur2005_lmoransi_cluster.svg written in SVG format)
+
+. graph export "fig/FIG_map_ur2005_lmoransi_cluster.png", as(png) width(1600) replace
+(file fig/FIG_map_ur2005_lmoransi_cluster.png written in PNG format)
+
+. 
+. 
+. 
+. ** LOG END
+. log close
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_columb
+> us.log
+  log type:  text
+ closed on:  20 Mar 2025, 15:26:00
+---------------------------------------------------------------------------------------------------------------------
