@@ -1,8 +1,18 @@
 /*************************************************
 ** (C) Keisuke Kondo
-** Uploaded Date: 17 March 2025
+** Uploaded Date: 20 March 2025
 ** 
+** [NOTES]
+** Stata 15 or later is required to use the Sp commands.
+** ssc install moransi
+** net install sg162.pkg, replace
+** ssc install splagvar
 *************************************************/
+
+
+** LOG START
+log using "log/LOG_moransi_columbus.log", replace text
+
 
 /*************************************************
 ** SHAPE2DTA
@@ -170,3 +180,7 @@ twoway ///
 	graphregion(color(white) fcolor(white))
 graph export "fig/FIG_scatter_1km_pop.png", as(png) width(1600) replace
 
+
+
+** LOG END
+log close

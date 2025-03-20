@@ -33,7 +33,7 @@
 ** 
 capture program drop moransi
 program moransi, sortpreserve rclass
-	version 11
+	version 11.0
 	syntax varlist [if] [in], /*
 			*/ lat(varname) /*
 			*/ lon(varname) /*
@@ -345,7 +345,7 @@ program moransi, sortpreserve rclass
 end
 
 /*## MATA ## Calculate Moran's I*/
-version 11
+version 11.0
 mata:
 void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, wvar, sweight, appdist, dispdetail, matsave, genvar, touse)
 {
@@ -881,7 +881,7 @@ void calcmoransi(vY, lon, lat, fmdms, swmtype, dist, unit, dd, wvar, sweight, ap
 end
 
 /*## MATA ## Convert DMS format to Decimal Format*/
-version 11
+version 11.0
 mata:
 void convlonlat2decimal(lat, lon, touse, vlat, vlon)
 {

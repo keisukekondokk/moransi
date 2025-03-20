@@ -1,7 +1,12 @@
 /*************************************************
 ** (C) Keisuke Kondo
-** Uploaded Date: 17 March 2025
+** Uploaded Date: 20 March 2025
 ** 
+** [NOTES]
+** Stata 15 or later is required to use the Sp commands.
+** ssc install moransi
+** net install sg162.pkg, replace
+** ssc install splagvar
 *************************************************/
 
 /*************************************************
@@ -75,7 +80,6 @@ replace pop_total_female = 0 if pop_total_female == .
 
 **
 tab id_pref
-
 
 ** Moran's I
 sjlog using "log/output_moransi_mesh1km", replace

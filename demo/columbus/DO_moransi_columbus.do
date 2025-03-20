@@ -1,12 +1,17 @@
 /*************************************************
 ** (C) Keisuke Kondo
 ** Uploaded Date: November 06, 2015
-** Update Date: June 08, 2021
+** Update Date: March 20, 2025
 **
 ** [NOTES]
-** ssc install esttab
-** ssc install spgen
+** Stata 15 or later is required to use the Sp commands.
+** ssc install moransi
+** net install sg162.pkg, replace
+** ssc install splagvar
 *************************************************/
+
+** LOG START
+log using "log/LOG_moransi_columbus.log", replace text
 
 
 /*************************************************
@@ -66,3 +71,6 @@ spatgsa std_CRIME, w(mW) moran
 ** splagvar
 splagvar std_CRIME, wname(mW) wfrom(Stata) moran(std_CRIME) replace
 
+
+** LOG END
+log close

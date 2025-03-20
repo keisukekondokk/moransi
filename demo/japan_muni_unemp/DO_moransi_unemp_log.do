@@ -1,19 +1,17 @@
 /**********************************************************
 ** (C) Keisuke Kondo
-** Upload Date: March 31, 2018
-** Updated Date: March 18, 2025
+** Upload Date: March 20, 2025
 ** 
-** [Required Stata Modules]
-** - spatgsa
-** - splagvar
-** - moransi
-** NOTE: Install from SSC Archive
+** [NOTES]
+** Stata 15 or later is required to use the Sp commands.
+** ssc install moransi
+** net install sg162.pkg, replace
+** ssc install splagvar
 ** 
 ** [Reference]
 ** Kondo, K (2015) "Spatial persistence of Japanese unemployment rates,"
 ** Japan and the World Economy, 36, pp. 113-122, 2015.
 ** NOTE: The replication data are used here.
-**
 **********************************************************/
 
 
