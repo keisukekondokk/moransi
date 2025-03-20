@@ -1,0 +1,364 @@
+---------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_mesh_pop\log/LOG_moransi_japan_me
+> sh.log
+  log type:  text
+ opened on:  20 Mar 2025, 18:49:36
+
+. 
+. 
+. /*************************************************
+> ** SHAPE2DTA
+> ** Convert Shapefiles to Stata DTA
+> *************************************************/
+. 
+. ** Line of Railroad in Tokyo Metropolitan Area
+. spshape2dta "shp/SHP_line_railroad.shp", replace
+  (importing .shp file)
+  (importing .dbf file)
+  (creating _ID spatial-unit id)
+  (creating _CX coordinate)
+  (creating _CY coordinate)
+
+  file SHP_line_railroad_shp.dta created
+  file SHP_line_railroad.dta     created
+
+. 
+. ** Polygon of Prefectures in Tokyo Metropolitan Area
+. spshape2dta "shp/SHP_pref_greater_tokyo.shp", replace
+  (importing .shp file)
+  (importing .dbf file)
+  (creating _ID spatial-unit id)
+  (creating _CX coordinate)
+  (creating _CY coordinate)
+
+  file SHP_pref_greater_tokyo_shp.dta created
+  file SHP_pref_greater_tokyo.dta     created
+
+. 
+. ** Add Prefecture Code in Shapefile
+. use "SHP_pref_greater_tokyo.dta", clear
+
+. gen id_pref = prefCode
+
+. save "data/DTA_id_pref.dta", replace
+file data/DTA_id_pref.dta saved
+
+. 
+. ** Add Prefecture Code in Shapefile
+. use "SHP_pref_greater_tokyo_shp.dta", clear
+
+. merge m:1 _ID using "data/DTA_id_pref.dta", keepusing(id_pref)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           230,740  (_merge==3)
+    -----------------------------------------
+
+. save "SHP_pref_greater_tokyo_shp.dta", replace
+file SHP_pref_greater_tokyo_shp.dta saved
+
+. 
+. ** Mesh Shapefile in Tokyo Metropolitan Area
+. spshape2dta "shp/SHP_mesh_1km_greater_tokyo.shp", replace
+  (importing .shp file)
+  (importing .dbf file)
+  (creating _ID spatial-unit id)
+  (creating _CX coordinate)
+  (creating _CY coordinate)
+
+  file SHP_mesh_1km_greater_tokyo_shp.dta created
+  file SHP_mesh_1km_greater_tokyo.dta     created
+
+. 
+. /*************************************************
+> ** CSV2DTA
+> ** Convert CSV to Stata DTA
+> *************************************************/
+. 
+. ** Mesh data of 2015 population census
+. import delimited "data/CSV_mesh3_data_pc2015.csv", clear
+(5 vars, 178,397 obs)
+
+. save "data/DTA_mesh3_data_pc2015.dta", replace
+file data/DTA_mesh3_data_pc2015.dta saved
+
+. 
+. /*************************************************
+> ** Dataset
+> ** 
+> ** 
+> *************************************************/
+. 
+. ** 
+. use "SHP_mesh_1km_greater_tokyo.dta", clear
+
+. 
+. ** 
+. drop if id_pref == 13 & lat < 35
+(713 observations deleted)
+
+. 
+. ** Number of Mesh Grid
+. count
+  13,657
+
+. 
+. ** SPSET
+. spset
+  Sp dataset SHP_mesh_1km_greater_tokyo.dta
+                data:  cross sectional
+     spatial-unit id:  _ID
+         coordinates:  _CX, _CY (planar)
+    linked shapefile:  SHP_mesh_1km_greater_tokyo_shp.dta
+
+. 
+. ** 
+. gen id_mesh3 = KEY_CODE
+
+. destring id_mesh3, replace
+id_mesh3: all characters numeric; replaced as long
+
+. duplicates report id_mesh3 id_pref
+
+Duplicates in terms of id_mesh3 id_pref
+
+--------------------------------------
+   copies | observations       surplus
+----------+---------------------------
+        1 |        13657             0
+--------------------------------------
+
+. duplicates report id_mesh3 
+
+Duplicates in terms of id_mesh3
+
+--------------------------------------
+   copies | observations       surplus
+----------+---------------------------
+        1 |        12928             0
+        2 |          720           360
+        3 |            9             6
+--------------------------------------
+
+. duplicates tag id_mesh3, gen(id_mesh3_multiple)
+
+Duplicates in terms of id_mesh3
+
+. duplicates drop id_mesh3, force
+
+Duplicates in terms of id_mesh3
+
+(366 observations deleted)
+
+. 
+. ** Merge Population Data
+. merge 1:1 id_mesh3 using "data/DTA_mesh3_data_pc2015.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       169,794
+        from master                     2,344  (_merge==1)
+        from using                    167,450  (_merge==2)
+
+    matched                            10,947  (_merge==3)
+    -----------------------------------------
+
+. drop if _merge == 2
+(167,450 observations deleted)
+
+. drop _merge 
+
+. 
+. ** 
+. replace pop_total_all = 0 if pop_total_all == .
+(2,344 real changes made)
+
+. replace pop_total_male = 0 if pop_total_male == .
+(2,344 real changes made)
+
+. replace pop_total_female = 0 if pop_total_female == .
+(2,344 real changes made)
+
+. 
+. **
+. tab id_pref
+
+    id_pref |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         11 |      3,868       29.10       29.10
+         12 |      5,243       39.45       68.55
+         13 |      1,731       13.02       81.57
+         14 |      2,449       18.43      100.00
+------------+-----------------------------------
+      Total |     13,291      100.00
+
+. 
+. 
+. ** Moran's I
+. moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) approx replace
+
+Size of spatial weight matrix: 13291 * 13291
+Calculating bilateral distance...
+-----------------
+|Completed:  10%|
+|Completed:  20%|
+|Completed:  30%|
+|Completed:  40%|
+|Completed:  50%|
+|Completed:  60%|
+|Completed:  70%|
+|Completed:  80%|
+|Completed:  90%|
+|Completed: 100%|
+-----------------
+
+Distance by simplified version of Vincenty formula (unit: km)
+
+Summary of Global Moran's I Statistic                      Number of Obs. =     13291
+-------------------------------------------------------------------------------------
+            Variable |  Moran's I         E(I)        SE(I)         Z(I)      p-value
+---------------------+---------------------------------------------------------------
+       pop_total_all |    0.84325     -0.00008      0.00469    179.63289      0.00000
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+
+Summary of Local Moran's I Statistics                      Number of Obs. =     13291
+-------------------------------------------------------------------------------------
+       pop_total_all |           Obs.        p < 0.10        p < 0.05        p < 0.01
+---------------------+---------------------------------------------------------------
+        1: High-High |           3106            2044            1958            1790
+        2: High-Low  |            328               0               0               0
+        3: Low-High  |            610               1               0               0
+        4: Low-Low   |           9247               0               0               0
+-------------------------------------------------------------------------------------
+Null Hypothesis: Spatial Randomization
+
+splag_pop_total_all_p was generated in the dataset.
+lmoran_i_pop_total_all_p was generated in the dataset.
+lmoran_e_pop_total_all_p was generated in the dataset.
+lmoran_v_pop_total_all_p was generated in the dataset.
+lmoran_z_pop_total_all_p was generated in the dataset.
+lmoran_p_pop_total_all_p was generated in the dataset.
+lmoran_cat_pop_total_all_p was generated in the dataset.
+
+. 
+. 
+. ** ==============================
+. ** Map of Population 
+. ** ==============================
+. 
+. ** Map
+. grmap pop_total_all, ///
+>         fcolor(Blues) ///
+>         clmethod(quantile) ///
+>         clnumber(9) ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legtitle("Population") ///
+>         legend(size(small) position(5)) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         osize(vvthin .. vvthin) ///
+>         polygon(data(SHP_pref_greater_tokyo_shp.dta) osize(medthick) select(drop if _Y < 34.839))
+
+. graph export "fig/FIG_mesh_1km_pop.png", as(png) width(1600) replace
+(file fig/FIG_mesh_1km_pop.png written in PNG format)
+
+. 
+. ** ==============================
+. ** Map of Statistical Significance
+. ** ==============================
+. 
+. ** Map
+. grmap lmoran_p_pop_total_all_p, ///
+>         clmethod(custom) ///
+>         clbreak(0 0.01 0.05 0.1 1) ///
+>         fcolor("green" "green%70" "green%30" none) ///
+>         osize(vvthin ...) ///
+>         ocolor(gs12 ...) ///
+>         ndocolor(none ...) ///
+>         legend(size(medium) position(2) order(2 "< 1 %" 3 "< 5 %" 4 "< 10 %" 5 "Not Significant")) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         polygon(data("SHP_pref_greater_tokyo_shp.dta") osize(medthick) select(drop if _Y < 34.839))
+
+. graph export "fig/FIG_mesh_1km_localmoransi_significance.png", as(png) width(1600) replace
+(file fig/FIG_mesh_1km_localmoransi_significance.png written in PNG format)
+
+. 
+. 
+. ** ==============================
+. ** Map of Statistical Significance
+. ** ==============================
+. 
+. ** Map
+. grmap lmoran_cat_pop_total_all_p if lmoran_p_pop_total_all_p < 0.10 , ///
+>         clmethod(custom) ///
+>         clbreak(0 1 2 3 4) ///
+>         fcolor("red" "red%40" "blue%40" "blue") ///
+>         osize(none ...) ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legend(size(medium) position(2) order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" 6 "Not Significan
+> t" )) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         line(data("SHP_line_railroad_shp.dta") size(vthin) color(gray)) ///
+>         polygon(data("SHP_pref_greater_tokyo_shp.dta") osize(medthick) select(drop if _Y < 34.839))
+
+. graph export "fig/FIG_mesh_1km_localmoransi_category.png", as(png) width(1600) replace
+(file fig/FIG_mesh_1km_localmoransi_category.png written in PNG format)
+
+.         
+. 
+. ** ==============================
+. ** Moran Scatter Plot
+. ** ==============================
+. 
+. ** 
+. qui: sum splag_pop_total_all_p
+
+. qui: local mean_wy = r(mean)
+
+. qui: sum pop_total_all
+
+. qui: local mean_y = r(mean)
+
+. 
+. ** 
+. twoway ///
+>         (scatter splag_pop_total_all_p pop_total_all, msymbol(oh) yaxis(1 2) xaxis(1 2)) ///
+>         (lfit splag_pop_total_all_p pop_total_all, lw(thick)) ///
+>         , ///
+>         ytitle("Spatial Lag of Population in Mesh Grid", tstyle(size(medium)) axis(1)) ///
+>         xtitle("Population in Mesh Grid", tstyle(size(medium)) height(6) axis(1)) ///
+>         ytitle("", axis(2)) ///
+>         xtitle("", axis(2)) ///
+>         ylabel(, ang(h) labsize(medium) format(%2.0f) grid axis(1)) ///
+>         xlabel(, labsize(medium) format(%2.0f) grid axis(1)) ///
+>         ylabel(, axis(2)) ///
+>         xlabel(, axis(2)) ///
+>         ysize(2.5) ///
+>         xsize(4) ///
+>         yline(`mean_wy', lwidth(thin) lcolor(red) lpattern(dash)) ///
+>         xline(`mean_y', lwidth(thin) lcolor(red) lpattern(dash)) ///
+>         legend(off) ///
+>         graphregion(color(white) fcolor(white))
+
+. graph export "fig/FIG_scatter_1km_pop.png", as(png) width(1600) replace
+(file fig/FIG_scatter_1km_pop.png written in PNG format)
+
+. 
+. 
+. 
+. ** LOG END
+. log close
+      name:  <unnamed>
+       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_mesh_pop\log/LOG_moransi_japan_me
+> sh.log
+  log type:  text
+ closed on:  20 Mar 2025, 18:50:08
+---------------------------------------------------------------------------------------------------------------------
