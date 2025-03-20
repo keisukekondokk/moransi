@@ -16,7 +16,7 @@
 
 
 ** LOG START
-log using "log/LOG_moransi_columbus.log", replace text
+log using "log/LOG_moransi_unemp.log", replace text
 
 
 /************************
