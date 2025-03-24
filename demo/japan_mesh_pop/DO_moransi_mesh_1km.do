@@ -11,7 +11,7 @@
 
 
 ** LOG START
-log using "log/LOG_moransi_japan_mesh.log", replace text
+log using "log/LOG_moransi_mesh_1km.log", replace text
 
 
 /*************************************************
@@ -56,7 +56,7 @@ save "data/DTA_mesh3_data_pc2015.dta", replace
 ** 
 use "SHP_mesh_1km_greater_tokyo.dta", clear
 
-** 
+** Delete Small Islands
 drop if id_pref == 13 & lat < 35
 
 ** Number of Mesh Grid
@@ -65,7 +65,7 @@ count
 ** SPSET
 spset
 
-** 
+** Mesh ID
 gen id_mesh3 = KEY_CODE
 destring id_mesh3, replace
 duplicates report id_mesh3 id_pref
@@ -88,7 +88,7 @@ tab id_pref
 
 
 ** Moran's I
-moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) approx replace
+moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) large approx graph replace
 
 
 ** ==============================
@@ -107,7 +107,7 @@ grmap pop_total_all, ///
 	legstyle(1) ///
 	legcount /// 
 	osize(vvthin .. vvthin) ///
-	polygon(data(SHP_pref_greater_tokyo_shp.dta) osize(medthick) select(drop if _Y < 34.839))
+	polygon(data("SHP_pref_greater_tokyo_shp.dta") osize(medthick) select(drop if _Y < 34.839))
 graph export "fig/FIG_mesh_1km_pop.png", as(png) width(1600) replace
 
 ** ==============================

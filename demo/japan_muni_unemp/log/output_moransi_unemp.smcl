@@ -14,6 +14,7 @@
 {txt}{c |}Completed:  90%{c |}
 {txt}{c |}Completed: 100%{c |}
 {txt}{c BT}{hline 15}{c BT}
+{txt}Calculating Moran's I Statistics...
 
 {txt}Distance by Vincenty formula (unit: km)
 {txt}{hline 21}{c TT}{hline 63} 

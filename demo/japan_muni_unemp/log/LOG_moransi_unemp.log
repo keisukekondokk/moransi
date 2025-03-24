@@ -1,9 +1,8 @@
----------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_unemp.
-> log
+       log:  H:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_unemp.log
   log type:  text
- opened on:  20 Mar 2025, 18:49:57
+ opened on:  24 Mar 2025, 09:35:01
 
 . 
 . 
@@ -37,6 +36,7 @@ Calculating bilateral distance...
 |Completed:  90%|
 |Completed: 100%|
 -----------------
+Calculating Moran's I Statistics...
 
 Distance by Vincenty formula (unit: km)
 ------------------------------------------------------------------------------------- 
@@ -87,17 +87,17 @@ lmoran_cat_std_ur2005_p was generated in the dataset.
 . return list
 
 scalars:
-                  r(I) =  .4962911692480385
+                  r(I) =  .496291169249097
                  r(EI) =  -.0005733944954128
-                r(seI) =  .0101943221591084
-                 r(zI) =  48.73934293900186
+                r(seI) =  .0101943221592161
+                 r(zI) =  48.73934293859071
                  r(pI) =  0
                   r(N) =  1745
                  r(td) =  .
                  r(dd) =  2
-          r(dist_mean) =  603.95085630048
-            r(dist_sd) =  432.633986711015
-           r(dist_min) =  .8536509718661491
+          r(dist_mean) =  603.9508562999802
+            r(dist_sd) =  432.6339867114237
+           r(dist_min) =  .8536509706109272
            r(dist_max) =  2961.184699140176
 
 macros:
@@ -326,8 +326,7 @@ Spatially lagged variable(s) calculated successfully and/or all requests process
 >         fcolor("red" "red%40" "blue%40" "blue") ///
 >         ocolor(none ...) ///
 >         ndocolor(none ...) ///
->         legend(size(medium) position(11) order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" 6 "Not Significa
-> nt" )) ///
+>         legend(size(medium) position(11) order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" 6 "Not Significant" )) ///
 >         legstyle(1) ///
 >         legcount /// 
 >         polygon(data("SHP_poly_pref_pc2011_shp.dta") ocolor(black) osize(vthin)) 
@@ -344,8 +343,7 @@ Spatially lagged variable(s) calculated successfully and/or all requests process
 . ** LOG END
 . log close
       name:  <unnamed>
-       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_unemp.
-> log
+       log:  H:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\japan_muni_unemp\log/LOG_moransi_unemp.log
   log type:  text
- closed on:  20 Mar 2025, 18:51:15
----------------------------------------------------------------------------------------------------------------------
+ closed on:  24 Mar 2025, 09:39:07
+----------------------------------------------------------------------------------------------------------------------------------

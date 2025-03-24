@@ -1,8 +1,8 @@
----------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
+       log:  H:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
   log type:  text
- opened on:  20 Mar 2025, 15:19:35
+ opened on:  24 Mar 2025, 09:34:05
 
 . 
 . 
@@ -51,6 +51,7 @@ Calculating bilateral distance...
 |Completed:  90%|
 |Completed: 100%|
 -----------------
+Calculating Moran's I Statistics...
 
 Distance by Vincenty formula (unit: km)
 
@@ -87,18 +88,18 @@ lmoran_cat_std_CRIME_p was generated in the dataset.
 . return list
 
 scalars:
-                  r(I) =  .6077775591941038
+                  r(I) =  .6077775591682927
                  r(EI) =  -.0208333333333333
-                r(seI) =  .1479527939116509
-                 r(zI) =  4.248726069362424
-                 r(pI) =  .0000214989617087
+                r(seI) =  .1479527939665313
+                 r(zI) =  4.248726067611981
+                 r(pI) =  .0000214989618765
                   r(N) =  49
                  r(td) =  .
                  r(dd) =  8
-          r(dist_mean) =  6.18384104754105
-            r(dist_sd) =  3.384225774686633
-           r(dist_min) =  .4654915536378494
-           r(dist_max) =  17.44432544793986
+          r(dist_mean) =  6.183841047495347
+            r(dist_sd) =  3.384225774744041
+           r(dist_min) =  .4654915502033913
+           r(dist_max) =  17.44432544793985
 
 macros:
                 r(cmd) : "moransi"
@@ -209,7 +210,7 @@ Spatially lagged variable(s) calculated successfully and/or all requests process
 . ** LOG END
 . log close
       name:  <unnamed>
-       log:  E:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
+       log:  H:\MyWorks\RIETI_Project\Stata_RePEc_MORANSI\github\moransi\demo\columbus\log/LOG_moransi_columbus.log
   log type:  text
- closed on:  20 Mar 2025, 15:19:35
----------------------------------------------------------------------------------------------------------------------
+ closed on:  24 Mar 2025, 09:34:12
+----------------------------------------------------------------------------------------------------------------------------------

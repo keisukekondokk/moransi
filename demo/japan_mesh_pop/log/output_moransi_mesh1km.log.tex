@@ -1,4 +1,6 @@
-. moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) approx replace
+. ** Moran's I
+. moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) large approx graph re
+> place
 {\smallskip}
 Size of spatial weight matrix: 13291 * 13291
 Calculating bilateral distance...
@@ -14,6 +16,7 @@ Calculating bilateral distance...
 {\VBAR}Completed:  90\%{\VBAR}
 {\VBAR}Completed: 100\%{\VBAR}
 {\BOTT}\HLI{15}{\BOTT}
+Calculating Moran's I Statistics...
 {\smallskip}
 Distance by simplified version of Vincenty formula (unit: km)
 {\smallskip}

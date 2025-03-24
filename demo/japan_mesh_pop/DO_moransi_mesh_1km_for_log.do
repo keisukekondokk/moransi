@@ -83,6 +83,7 @@ tab id_pref
 
 ** Moran's I
 sjlog using "log/output_moransi_mesh1km", replace
-moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) approx replace
+** Moran's I
+moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) large approx graph replace
 sjlog close, replace
 
