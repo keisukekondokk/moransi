@@ -1,0 +1,16 @@
+. ** Map
+. grmap lmoran_cat_pop_total_all_p if lmoran_p_pop_total_all_p < 0.10 , ///
+>         clmethod(custom) ///
+>         clbreak(0 1 2 3 4) ///
+>         fcolor("red" "red%40" "blue%40" "blue") ///
+>         osize(none ...) ///
+>         ocolor(none ...) ///
+>         ndocolor(none ...) ///
+>         legend(size(medium) position(2) ///
+>                 order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" ///
+>                 6 "Not Significant" )) ///
+>         legstyle(1) ///
+>         legcount /// 
+>         line(data("SHP_line_railroad_shp.dta") size(vthin) color(gray)) ///
+>         polygon(data("SHP_pref_greater_tokyo_shp.dta") ///
+>                 osize(medthick) select(drop if _Y < 34.839))

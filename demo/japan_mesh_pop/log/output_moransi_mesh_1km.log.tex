@@ -1,0 +1,49 @@
+. ** Moran's I
+. moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) ///
+>         large approx graph replace
+{\smallskip}
+Size of spatial weight matrix: 13291 * 13291
+Calculating bilateral distance...
+{\TOPT}\HLI{15}{\TOPT}
+{\VBAR}Completed:  10\%{\VBAR}
+{\VBAR}Completed:  20\%{\VBAR}
+{\VBAR}Completed:  30\%{\VBAR}
+{\VBAR}Completed:  40\%{\VBAR}
+{\VBAR}Completed:  50\%{\VBAR}
+{\VBAR}Completed:  60\%{\VBAR}
+{\VBAR}Completed:  70\%{\VBAR}
+{\VBAR}Completed:  80\%{\VBAR}
+{\VBAR}Completed:  90\%{\VBAR}
+{\VBAR}Completed: 100\%{\VBAR}
+{\BOTT}\HLI{15}{\BOTT}
+Calculating Moran's I Statistics...
+{\smallskip}
+Distance by simplified version of Vincenty formula (unit: km)
+{\smallskip}
+Summary of Global Moran's I Statistic                      Number of Obs. =     13291
+\HLI{21}{\TOPT}\HLI{63}
+            Variable {\VBAR}  Moran's I         E(I)        SE(I)         Z(I)      p-value
+\HLI{21}{\PLUS}\HLI{63}
+       pop_total_all {\VBAR}    0.84325     -0.00008      0.00469    179.63289      0.00000
+\HLI{21}{\BOTT}\HLI{63}
+Null Hypothesis: Spatial Randomization
+{\smallskip}
+{\smallskip}
+Summary of Local Moran's I Statistics                      Number of Obs. =     13291
+\HLI{21}{\TOPT}\HLI{63}
+       pop_total_all {\VBAR}           Obs.        p < 0.10        p < 0.05        p < 0.01
+\HLI{21}{\PLUS}\HLI{63}
+        1: High-High {\VBAR}           3106            2044            1958            1790
+        2: High-Low  {\VBAR}            328               0               0               0
+        3: Low-High  {\VBAR}            610               1               0               0
+        4: Low-Low   {\VBAR}           9247               0               0               0
+\HLI{21}{\BOTT}\HLI{63}
+Null Hypothesis: Spatial Randomization
+{\smallskip}
+{\bftt{splag_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_i_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_e_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_v_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_z_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_p_pop_total_all_p}} was generated in the dataset.
+{\bftt{lmoran_cat_pop_total_all_p}} was generated in the dataset.
