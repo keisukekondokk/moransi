@@ -1,4 +1,5 @@
-{com}. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+{com}. moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) ///
+>         dunit(km) det graph replace
 {res}{txt}
 {txt}Size of spatial weight matrix:{res} 1745 * 1745
 {txt}Calculating bilateral distance...

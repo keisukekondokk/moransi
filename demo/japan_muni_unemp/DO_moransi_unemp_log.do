@@ -28,7 +28,8 @@ egen std_ur2005 = std(ur2005)
 
 ** MORNASI Command by Kondo
 sjlog using "log/output_moransi_unemp", replace
-moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) dunit(km) det graph replace
+moransi std_ur2005, lon(lon) lat(lat) swm(pow 2) dist(.) ///
+	dunit(km) det graph replace
 graph export "fig/FIG_moran_ur2005.svg", replace
 sjlog close, replace
 
@@ -36,8 +37,10 @@ sjlog close, replace
 sjlog using "log/output_moransi_unemp_scatter", replace
 twoway (scatter splag_std_ur2005_p std_ur2005, ms(oh) yaxis(1 2) xaxis(1 2)) ///
 	(lfit splag_std_ur2005_p std_ur2005, lw(medthick) estopts(nocons)), ///
-	ytitle("W.Standardized Unemployment Rates", tstyle(size(large)) axis(1)) ///
-	xtitle("Standardized Unemployment Rates", tstyle(size(large)) height(6) axis(1)) ///
+	ytitle("W.Standardized Unemployment Rates", ///
+		tstyle(size(large)) axis(1)) ///
+	xtitle("Standardized Unemployment Rates", ///
+		tstyle(size(large)) height(6) axis(1)) ///
 	ytitle("", axis(2)) ///
 	xtitle("", axis(2)) ///
 	ylabel(-2(2)6, ang(h) labsize(large) format(%2.0f) nogrid axis(1)) ///

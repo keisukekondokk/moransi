@@ -11,7 +11,9 @@
 ** URL: https://keisukekondokk.github.io/
 *******************************************************************************/
 ** Version: 1.31
+** Added largesize option
 ** Coding improvement for small sample size
+** Bug fix
 ** Version: 1.30
 ** Added WVAR() option
 ** Added replace option
@@ -45,10 +47,10 @@ program moransi, sortpreserve rclass
 			*/ [ /*
 			*/ WVAR(varname) /*
 			*/ DMS /*
+			*/ LARGEsize /*
 			*/ APProx /*
 			*/ DETail /*
 			*/ NOMATsave /*
-			*/ LARGEsize /*
 			*/ REPlace /*
 			*/ GRAPH ]
 	

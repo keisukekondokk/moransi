@@ -82,8 +82,30 @@ replace pop_total_female = 0 if pop_total_female == .
 tab id_pref
 
 ** Moran's I
-sjlog using "log/output_moransi_mesh1km", replace
+sjlog using "log/output_moransi_mesh_1km", replace
 ** Moran's I
-moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) large approx graph replace
+moransi pop_total_all, lon(lon) lat(lat) swm(pow 4) dist(.) dunit(km) ///
+	large approx graph replace
 sjlog close, replace
 
+
+
+** Moran's I
+sjlog using "log/output_moransi_mesh_1km_grmap", replace
+** Map
+grmap lmoran_cat_pop_total_all_p if lmoran_p_pop_total_all_p < 0.10 , ///
+	clmethod(custom) ///
+	clbreak(0 1 2 3 4) ///
+	fcolor("red" "red%40" "blue%40" "blue") ///
+	osize(none ...) ///
+	ocolor(none ...) ///
+	ndocolor(none ...) ///
+	legend(size(medium) position(2) ///
+		order(2 "High-High" 3 "High-Low" 4 "Low-High" 5 "Low-Low" ///
+		6 "Not Significant" )) ///
+	legstyle(1) ///
+	legcount /// 
+	line(data("SHP_line_railroad_shp.dta") size(vthin) color(gray)) ///
+	polygon(data("SHP_pref_greater_tokyo_shp.dta") ///
+		osize(medthick) select(drop if _Y < 34.839))
+sjlog close, replace
